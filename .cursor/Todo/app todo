@@ -1,0 +1,75 @@
+Allerede lavet / sat op
+ Projekt oprettet med Flutter + Cursor
+
+ Navn valgt: PicSor
+
+ .cursor/rules/ sat op med:
+
+context.mdc (formål og stil)
+
+mvp.mdc
+
+test-strategy.mdc
+
+tools.mdc
+
+ Dependencies valgt og opdateret
+
+ GalleryService oprettet med asset fetch + permission
+
+ PhotoModel og PhotoAction oprettet
+
+ SwipeScreen med swipe-gestures og UI
+
+ Undo-historik implementeret
+
+ Handlinger gemt i memory (swipe actions)
+
+ DeletedScreen og SortLaterScreen med valg og knapper
+
+ Navigation via AppRoutes og BottomNavBar
+
+🛠 I gang / under udvikling
+ StatsScreen (gallery stats, GB slettet, % swipet, mm.)
+
+ Swipe limit logic med refill hver 5. time + anti-tidsfusk
+
+ SettingsScreen (notifikationer, tema, del, rate, privacy)
+
+⏭ Næste trin (efter MVP)
+🔔 Notifications
+Notifikation når næste swipe refill er klar
+
+Brug flutter_local_notifications
+
+📺 AdMob integration (senere)
+Rewarded ad: +50 swipes
+
+Banner-ads mellem billeder (fx hver 10-20 swipe)
+
+🧪 Tests (valgfrit før release)
+Widget test af SwipeScreen, undo, og flow
+
+Unit test af swipe limit + logik
+
+Integration test (swipe → delete → stats update)
+
+🧼 Polish & UX
+ Vis swipe-animeret overlay med "Deleted", "Kept", "Sort Later"
+
+ Små loading indicators under billede-load
+
+ Tomt-galleri fallback design
+
+ Scrollbar i deleted/sort later screens
+
+📦 Klar til release?
+ App navn/logo + launcher icon
+
+ Android og iOS build klar (med tilladelser og config)
+
+ LICENSE og README.md opdateret
+
+ Testet på fysisk enhed med mange fotos
+
+ Privacy link og eventuelle app store metadata
