@@ -521,8 +521,8 @@ class _SwipeScreenState extends State<SwipeScreen>
               child: Dialog(
                 insetPadding: const EdgeInsets.all(24),
                 child: SizedBox(
-                  width: 350,
-                  height: 420,
+                  width: 400,
+                  height: 500,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -551,122 +551,219 @@ class _SwipeScreenState extends State<SwipeScreen>
                               padding: const EdgeInsets.only(bottom: 24),
                               itemCount: albumInfos.length,
                               separatorBuilder:
-                                  (_, __) => const SizedBox(height: 8),
+                                  (_, __) => const SizedBox(height: 16),
                               itemBuilder: (context, i) {
                                 final info = albumInfos[i];
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                  ),
-                                  child: Material(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .surfaceVariant
-                                        .withOpacity(0.8),
-                                    borderRadius: BorderRadius.circular(16),
-                                    child: InkWell(
-                                      borderRadius: BorderRadius.circular(16),
-                                      onTap:
-                                          () => Navigator.of(
-                                            context,
-                                          ).pop(info.name),
-                                      child: SizedBox(
-                                        height: 56,
-                                        child: Row(
-                                          children: [
-                                            if (info.thumb != null)
-                                              ClipRRect(
-                                                borderRadius:
-                                                    const BorderRadius.only(
-                                                      topLeft: Radius.circular(
-                                                        16,
-                                                      ),
-                                                      bottomLeft:
-                                                          Radius.circular(16),
-                                                      topRight: Radius.circular(
-                                                        0,
-                                                      ),
-                                                      bottomRight:
-                                                          Radius.circular(0),
-                                                    ),
-                                                child: Image.memory(
-                                                  info.thumb!,
-                                                  width: 56,
-                                                  height: 56,
-                                                  fit: BoxFit.cover,
-                                                ),
-                                              )
-                                            else
-                                              Container(
-                                                width: 56,
-                                                height: 56,
-                                                decoration: const BoxDecoration(
-                                                  color: Color(0xFFE0E0E0),
-                                                  borderRadius:
-                                                      BorderRadius.only(
-                                                        topLeft:
-                                                            Radius.circular(16),
-                                                        bottomLeft:
-                                                            Radius.circular(16),
-                                                        topRight:
-                                                            Radius.circular(0),
-                                                        bottomRight:
-                                                            Radius.circular(0),
-                                                      ),
-                                                ),
-                                                child: const Icon(
-                                                  Icons.photo,
-                                                  size: 28,
-                                                  color: Colors.grey,
-                                                ),
-                                              ),
-                                            const SizedBox(width: 16),
-                                            Expanded(
-                                              child: Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      vertical: 8,
-                                                    ),
-                                                child: Text(
-                                                  info.name,
-                                                  style: const TextStyle(
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 12),
-                                            Row(
-                                              mainAxisSize: MainAxisSize.min,
+                                return Row(
+                                  children: [
+                                    const SizedBox(width: 24),
+                                    Expanded(
+                                      child: Material(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .surfaceVariant
+                                            .withOpacity(0.8),
+                                        borderRadius: BorderRadius.circular(16),
+                                        child: InkWell(
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
+                                          onTap:
+                                              () => Navigator.of(
+                                                context,
+                                              ).pop(info.name),
+                                          child: SizedBox(
+                                            height: 56,
+                                            child: Row(
                                               children: [
-                                                Text(
-                                                  '${info.count}',
-                                                  style: const TextStyle(
-                                                    fontSize: 14,
+                                                if (info.thumb != null)
+                                                  ClipRRect(
+                                                    borderRadius:
+                                                        const BorderRadius.only(
+                                                          topLeft:
+                                                              Radius.circular(
+                                                                16,
+                                                              ),
+                                                          bottomLeft:
+                                                              Radius.circular(
+                                                                16,
+                                                              ),
+                                                          topRight:
+                                                              Radius.circular(
+                                                                0,
+                                                              ),
+                                                          bottomRight:
+                                                              Radius.circular(
+                                                                0,
+                                                              ),
+                                                        ),
+                                                    child: Image.memory(
+                                                      info.thumb!,
+                                                      width: 56,
+                                                      height: 56,
+                                                      fit: BoxFit.cover,
+                                                    ),
+                                                  )
+                                                else
+                                                  Container(
+                                                    width: 56,
+                                                    height: 56,
+                                                    decoration: const BoxDecoration(
+                                                      color: Color(0xFFE0E0E0),
+                                                      borderRadius:
+                                                          BorderRadius.only(
+                                                            topLeft:
+                                                                Radius.circular(
+                                                                  16,
+                                                                ),
+                                                            bottomLeft:
+                                                                Radius.circular(
+                                                                  16,
+                                                                ),
+                                                            topRight:
+                                                                Radius.circular(
+                                                                  0,
+                                                                ),
+                                                            bottomRight:
+                                                                Radius.circular(
+                                                                  0,
+                                                                ),
+                                                          ),
+                                                    ),
+                                                    child: const Icon(
+                                                      Icons.photo,
+                                                      size: 28,
+                                                      color: Colors.grey,
+                                                    ),
+                                                  ),
+                                                const SizedBox(width: 16),
+                                                Expanded(
+                                                  child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          vertical: 8,
+                                                        ),
+                                                    child: Text(
+                                                      info.name,
+                                                      style: const TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                      ),
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                    ),
                                                   ),
                                                 ),
-                                                const SizedBox(width: 4),
-                                                const Icon(
-                                                  Icons.photo_library_outlined,
-                                                  size: 18,
+                                                const SizedBox(width: 12),
+                                                Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Text(
+                                                      '${info.count}',
+                                                      style: const TextStyle(
+                                                        fontSize: 14,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    const Icon(
+                                                      Icons
+                                                          .photo_library_outlined,
+                                                      size: 18,
+                                                    ),
+                                                  ],
                                                 ),
+                                                const SizedBox(width: 12),
                                               ],
                                             ),
-                                            const SizedBox(width: 12),
-                                          ],
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
+                                    const SizedBox(width: 24),
+                                  ],
                                 );
                               },
                             );
                           },
                         ),
                       ),
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                              ),
+                              child: Material(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.surfaceVariant.withOpacity(0.8),
+                                borderRadius: BorderRadius.circular(16),
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(16),
+                                  onTap: () {
+                                    /* TODO: Add album */
+                                  },
+                                  child: SizedBox(
+                                    height: 48,
+                                    child: Center(
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: const [
+                                          Icon(Icons.add, size: 22),
+                                          SizedBox(width: 8),
+                                          Text(
+                                            'Add',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                              ),
+                              child: Material(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.surfaceVariant.withOpacity(0.8),
+                                borderRadius: BorderRadius.circular(16),
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(16),
+                                  onTap: () => Navigator.of(context).pop(),
+                                  child: SizedBox(
+                                    height: 48,
+                                    child: Center(
+                                      child: Text(
+                                        'Close',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 28),
                     ],
                   ),
                 ),
