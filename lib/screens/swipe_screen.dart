@@ -531,7 +531,7 @@ class _SwipeScreenState extends State<SwipeScreen>
                         child: Text(
                           'Add to Album',
                           style: TextStyle(
-                            fontSize: 20,
+                            fontSize: 24,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -548,6 +548,7 @@ class _SwipeScreenState extends State<SwipeScreen>
                             }
                             final albumInfos = snap.data!;
                             return ListView.separated(
+                              padding: const EdgeInsets.only(bottom: 24),
                               itemCount: albumInfos.length,
                               separatorBuilder:
                                   (_, __) => const SizedBox(height: 8),
