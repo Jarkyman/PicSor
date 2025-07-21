@@ -143,6 +143,26 @@ class MainActivity: FlutterActivity() {
                     android.util.Log.e("PicSor", "getAlbums exception", e)
                     result.success(listOf<String>())
                 }
+            } else if (call.method == "createAlbum") {
+                val args = call.arguments as? Map<*, *>
+                val albumName = args?.get("album") as? String
+                if (albumName == null) {
+                    result.success(false)
+                    return@setMethodCallHandler
+                }
+                try {
+                    val albumRoot = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DCIM).absolutePath + "/PicSor/"
+                    val albumFile = java.io.File(albumRoot, albumName)
+                    if (!albumFile.exists()) {
+                        val created = albumFile.mkdirs()
+                        result.success(created)
+                    } else {
+                        result.success(true) // Already exists
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("PicSor", "createAlbum exception", e)
+                    result.success(false)
+                }
             } else {
                 result.notImplemented()
             }

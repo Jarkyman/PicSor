@@ -83,4 +83,15 @@ class PhotoActionService {
       return [];
     }
   }
+
+  static Future<bool> createAlbum(String albumName) async {
+    try {
+      final result = await _albumsChannel.invokeMethod('createAlbum', {
+        'album': albumName,
+      });
+      return result == true;
+    } catch (_) {
+      return false;
+    }
+  }
 }

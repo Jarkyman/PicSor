@@ -705,8 +705,85 @@ class _SwipeScreenState extends State<SwipeScreen>
                                 borderRadius: BorderRadius.circular(16),
                                 child: InkWell(
                                   borderRadius: BorderRadius.circular(16),
-                                  onTap: () {
-                                    /* TODO: Add album */
+                                  onTap: () async {
+                                    final controller = TextEditingController();
+                                    final albumName = await showDialog<String>(
+                                      context: context,
+                                      builder: (context) {
+                                        return AlertDialog(
+                                          title: const Text('New Album'),
+                                          content: TextField(
+                                            controller: controller,
+                                            autofocus: true,
+                                            decoration: const InputDecoration(
+                                              hintText: 'Album name',
+                                            ),
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed:
+                                                  () =>
+                                                      Navigator.of(
+                                                        context,
+                                                      ).pop(),
+                                              child: const Text('Cancel'),
+                                            ),
+                                            ElevatedButton(
+                                              onPressed: () {
+                                                final name =
+                                                    controller.text.trim();
+                                                if (name.isNotEmpty) {
+                                                  Navigator.of(
+                                                    context,
+                                                  ).pop(name);
+                                                }
+                                              },
+                                              child: const Text('Create'),
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+                                    if (albumName != null &&
+                                        albumName.isNotEmpty) {
+                                      final created =
+                                          await PhotoActionService.createAlbum(
+                                            albumName,
+                                          );
+                                      if (created) {
+                                        // Opdater listen og tilføj billedet til det nye album
+                                        final ok =
+                                            await PhotoActionService.addToAlbum(
+                                              photo,
+                                              albumName,
+                                            );
+                                        if (!ok) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                'Failed to add to new album.',
+                                              ),
+                                            ),
+                                          );
+                                        } else {
+                                          Navigator.of(context).pop(
+                                            albumName,
+                                          ); // luk popup og vælg albummet
+                                        }
+                                      } else {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'Could not create album.',
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    }
                                   },
                                   child: SizedBox(
                                     height: 48,

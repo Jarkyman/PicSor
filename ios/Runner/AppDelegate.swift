@@ -107,6 +107,25 @@ import Photos
           albumNames.append(collection.localizedTitle ?? "")
         }
         result(albumNames)
+      } else if call.method == "createAlbum" {
+        guard let args = call.arguments as? [String: Any],
+              let albumName = args["album"] as? String else {
+          result(false)
+          return
+        }
+        // Check if album already exists
+        let fetchOptions = PHFetchOptions()
+        fetchOptions.predicate = NSPredicate(format: "title = %@", albumName)
+        let collections = PHAssetCollection.fetchAssetCollections(with: .album, subtype: .any, options: fetchOptions)
+        if collections.firstObject != nil {
+          result(true) // Already exists
+          return
+        }
+        PHPhotoLibrary.shared().performChanges({
+          _ = PHAssetCollectionChangeRequest.creationRequestForAssetCollection(withTitle: albumName)
+        }, completionHandler: { success, error in
+          result(success)
+        })
       } else {
         result(FlutterMethodNotImplemented)
       }
