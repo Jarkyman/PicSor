@@ -4,7 +4,10 @@ import 'package:flutter/services.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 class PhotoActionService {
-  static const MethodChannel _channel = MethodChannel('picsor.favorite');
+  static const MethodChannel _favoriteChannel = MethodChannel(
+    'picsor.favorite',
+  );
+  static const MethodChannel _albumsChannel = MethodChannel('picsor.albums');
 
   /// Checks the system-level favorite status for the given photo id.
   static Future<bool> isSystemFavorite(String id) async {
@@ -15,7 +18,7 @@ class PhotoActionService {
       }
       // Use only the localIdentifier part for native call
       final systemId = id.split('/').first;
-      final result = await _channel.invokeMethod('isFavorite', {
+      final result = await _favoriteChannel.invokeMethod('isFavorite', {
         'id': systemId,
       });
       return result == true;
@@ -30,7 +33,7 @@ class PhotoActionService {
     try {
       final asset = photo.asset;
       final newValue = !asset.isFavorite;
-      final result = await _channel.invokeMethod('setFavorite', {
+      final result = await _favoriteChannel.invokeMethod('setFavorite', {
         'id': photo.id,
         'favorite': newValue,
       });
@@ -57,8 +60,27 @@ class PhotoActionService {
     }
   }
 
-  static Future<void> addToAlbum(PhotoModel photo) async {
-    // Placeholder for future album logic
-    // Implement using photo_manager album APIs
+  static Future<bool> addToAlbum(PhotoModel photo, String albumName) async {
+    try {
+      final result = await _albumsChannel.invokeMethod('addToAlbum', {
+        'id': photo.id,
+        'album': albumName,
+      });
+      return result == true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static Future<List<String>> getAlbums() async {
+    try {
+      final result = await _albumsChannel.invokeMethod('getAlbums');
+      if (result is List) {
+        return result.map((e) => e.toString()).toList();
+      }
+      return [];
+    } catch (_) {
+      return [];
+    }
   }
 }

@@ -11,6 +11,7 @@ import io.flutter.plugin.common.MethodChannel
 
 class MainActivity: FlutterActivity() {
     private val CHANNEL = "picsor.favorite"
+    private val ALBUMS_CHANNEL = "picsor.albums"
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -71,6 +72,76 @@ class MainActivity: FlutterActivity() {
                 } else {
                     android.util.Log.e("PicSor", "isFavorite: SDK < 30 not supported")
                     result.success(false)
+                }
+            } else {
+                result.notImplemented()
+            }
+        }
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, ALBUMS_CHANNEL).setMethodCallHandler { call, result ->
+            if (call.method == "addToAlbum") {
+                val args = call.arguments as? Map<*, *>
+                val id = args?.get("id") as? String
+                val albumName = args?.get("album") as? String
+                if (id == null || albumName == null) {
+                    result.success(false)
+                    return@setMethodCallHandler
+                }
+                try {
+                    // Find the asset in MediaStore
+                    val projection = arrayOf(
+                        MediaStore.Images.Media._ID,
+                        MediaStore.Images.Media.DATA,
+                        MediaStore.Images.Media.DISPLAY_NAME
+                    )
+                    val selection = MediaStore.Images.Media._ID + "=?"
+                    val cursor = contentResolver.query(
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                        projection,
+                        selection,
+                        arrayOf(id),
+                        null
+                    )
+                    if (cursor != null && cursor.moveToFirst()) {
+                        val dataIdx = cursor.getColumnIndex(MediaStore.Images.Media.DATA)
+                        val nameIdx = cursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME)
+                        val filePath = if (dataIdx != -1) cursor.getString(dataIdx) else null
+                        val fileName = if (nameIdx != -1) cursor.getString(nameIdx) else "image.jpg"
+                        cursor.close()
+                        if (filePath != null) {
+                            val albumDir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DCIM).absolutePath + "/PicSor/" + albumName
+                            val albumFile = java.io.File(albumDir)
+                            if (!albumFile.exists()) albumFile.mkdirs()
+                            val destFile = java.io.File(albumFile, fileName)
+                            val srcFile = java.io.File(filePath)
+                            srcFile.copyTo(destFile, overwrite = true)
+                            // Update MediaStore
+                            val values = ContentValues().apply {
+                                put(MediaStore.Images.Media.DATA, destFile.absolutePath)
+                                put(MediaStore.Images.Media.RELATIVE_PATH, "DCIM/PicSor/$albumName")
+                            }
+                            contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+                            result.success(true)
+                            return@setMethodCallHandler
+                        }
+                    }
+                    result.success(false)
+                } catch (e: Exception) {
+                    android.util.Log.e("PicSor", "addToAlbum exception: id=$id, album=$albumName", e)
+                    result.success(false)
+                }
+            } else if (call.method == "getAlbums") {
+                try {
+                    val albumRoot = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DCIM).absolutePath + "/PicSor/"
+                    val albumFile = java.io.File(albumRoot)
+                    val albums = if (albumFile.exists() && albumFile.isDirectory) {
+                        albumFile.listFiles()?.filter { it.isDirectory }?.map { it.name } ?: listOf<String>()
+                    } else {
+                        listOf<String>()
+                    }
+                    result.success(albums)
+                } catch (e: Exception) {
+                    android.util.Log.e("PicSor", "getAlbums exception", e)
+                    result.success(listOf<String>())
                 }
             } else {
                 result.notImplemented()

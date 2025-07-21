@@ -17,6 +17,14 @@ import '../widgets/swipe_card.dart';
 import '../widgets/swipe_action_button_group.dart';
 import '../widgets/floating_live_label.dart';
 import 'dart:io';
+import 'dart:ui';
+
+class _AlbumInfo {
+  final String name;
+  final int count;
+  final Uint8List? thumb;
+  _AlbumInfo({required this.name, required this.count, this.thumb});
+}
 
 class SwipeScreen extends StatefulWidget {
   final SwipeLogicService swipeLogicService;
@@ -484,11 +492,243 @@ class _SwipeScreenState extends State<SwipeScreen>
     }
   }
 
+  Future<void> _showAlbumPicker(PhotoModel photo) async {
+    final albums = await PhotoActionService.getAlbums();
+    if (albums.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('No albums found.')));
+      return;
+    }
+    final selected = await showDialog<String>(
+      context: context,
+      barrierColor: Colors.transparent,
+      barrierDismissible: true,
+      builder: (context) {
+        return Stack(
+          children: [
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => Navigator.of(context).pop(),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                  child: Container(color: Colors.black.withOpacity(0.25)),
+                ),
+              ),
+            ),
+            Center(
+              child: Dialog(
+                insetPadding: const EdgeInsets.all(24),
+                child: SizedBox(
+                  width: 350,
+                  height: 420,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Text(
+                          'Add to Album',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const Divider(),
+                      Expanded(
+                        child: FutureBuilder<List<_AlbumInfo>>(
+                          future: _fetchAlbumInfos(albums),
+                          builder: (context, snap) {
+                            if (!snap.hasData) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            }
+                            final albumInfos = snap.data!;
+                            return ListView.separated(
+                              itemCount: albumInfos.length,
+                              separatorBuilder:
+                                  (_, __) => const SizedBox(height: 8),
+                              itemBuilder: (context, i) {
+                                final info = albumInfos[i];
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                  ),
+                                  child: Material(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .surfaceVariant
+                                        .withOpacity(0.8),
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: InkWell(
+                                      borderRadius: BorderRadius.circular(16),
+                                      onTap:
+                                          () => Navigator.of(
+                                            context,
+                                          ).pop(info.name),
+                                      child: SizedBox(
+                                        height: 56,
+                                        child: Row(
+                                          children: [
+                                            if (info.thumb != null)
+                                              ClipRRect(
+                                                borderRadius:
+                                                    const BorderRadius.only(
+                                                      topLeft: Radius.circular(
+                                                        16,
+                                                      ),
+                                                      bottomLeft:
+                                                          Radius.circular(16),
+                                                      topRight: Radius.circular(
+                                                        0,
+                                                      ),
+                                                      bottomRight:
+                                                          Radius.circular(0),
+                                                    ),
+                                                child: Image.memory(
+                                                  info.thumb!,
+                                                  width: 56,
+                                                  height: 56,
+                                                  fit: BoxFit.cover,
+                                                ),
+                                              )
+                                            else
+                                              Container(
+                                                width: 56,
+                                                height: 56,
+                                                decoration: const BoxDecoration(
+                                                  color: Color(0xFFE0E0E0),
+                                                  borderRadius:
+                                                      BorderRadius.only(
+                                                        topLeft:
+                                                            Radius.circular(16),
+                                                        bottomLeft:
+                                                            Radius.circular(16),
+                                                        topRight:
+                                                            Radius.circular(0),
+                                                        bottomRight:
+                                                            Radius.circular(0),
+                                                      ),
+                                                ),
+                                                child: const Icon(
+                                                  Icons.photo,
+                                                  size: 28,
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
+                                            const SizedBox(width: 16),
+                                            Expanded(
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      vertical: 8,
+                                                    ),
+                                                child: Text(
+                                                  info.name,
+                                                  style: const TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(
+                                                  '${info.count}',
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 4),
+                                                const Icon(
+                                                  Icons.photo_library_outlined,
+                                                  size: 18,
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(width: 12),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+    if (selected != null) {
+      final ok = await PhotoActionService.addToAlbum(photo, selected);
+      if (!ok) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to add to album.')));
+      }
+    }
+  }
+
+  // Helper: fetch album info (name, count, thumb)
+  Future<List<_AlbumInfo>> _fetchAlbumInfos(List<String> albums) async {
+    final List<_AlbumInfo> infos = [];
+    for (final name in albums) {
+      try {
+        final paths = await PhotoManager.getAssetPathList(
+          hasAll: false,
+          filterOption: FilterOptionGroup(
+            containsPathModified: false,
+            orders: [
+              const OrderOption(type: OrderOptionType.createDate, asc: false),
+            ],
+          ),
+        );
+        AssetPathEntity? match;
+        try {
+          match = paths.firstWhere((p) => p.name == name);
+        } catch (_) {
+          match = null;
+        }
+        if (match != null) {
+          final count = match.assetCountAsync;
+          final assets = await match.getAssetListRange(start: 0, end: 1);
+          final thumb =
+              assets.isNotEmpty
+                  ? await assets.first.thumbnailDataWithSize(
+                    const ThumbnailSize(80, 80),
+                  )
+                  : null;
+          infos.add(_AlbumInfo(name: name, count: await count, thumb: thumb));
+        } else {
+          infos.add(_AlbumInfo(name: name, count: 0, thumb: null));
+        }
+      } catch (_) {
+        infos.add(_AlbumInfo(name: name, count: 0, thumb: null));
+      }
+    }
+    return infos;
+  }
+
   // Placeholder for add to album
   bool _isInAlbum(PhotoModel photo) => false; // TODO: implement real check
   Future<void> _addToAlbum(PhotoModel photo) async {
-    // TODO: implement add to album logic
-    setState(() {});
+    await _showAlbumPicker(photo);
   }
 
   Future<void> _sharePhoto(PhotoModel photo) async {
