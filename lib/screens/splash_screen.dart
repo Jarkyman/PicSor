@@ -9,6 +9,7 @@ import 'onboarding/notification_permission_screen.dart';
 import 'onboarding/privacy_policy_screen.dart';
 import 'onboarding/intro_screen.dart';
 import 'onboarding/bonus_swipes_screen.dart';
+import '../services/swipe_storage_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -62,6 +63,8 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _finishOnboarding() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('onboarding_done', true);
+    // Hvis vi lige har været på bonus-siden, giv 1000 swipes
+    await SwipeStorageService.saveSwipesLeft(1000);
     setState(() {
       _showOnboarding = false;
       _loading = true;
