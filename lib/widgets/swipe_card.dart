@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/photo_model.dart';
+import '../core/theme.dart';
 
 class SwipeCard extends StatelessWidget {
   final PhotoModel photo;
@@ -11,7 +12,7 @@ class SwipeCard extends StatelessWidget {
   final Widget? child;
 
   const SwipeCard({
-    Key? key,
+    super.key,
     required this.photo,
     this.isTop = false,
     this.liveLabel,
@@ -19,14 +20,15 @@ class SwipeCard extends StatelessWidget {
     this.showLiveLabel = false,
     this.aspectRatio = 1.0,
     this.child,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     Widget imageWidget;
+    final borderRadius = BorderRadius.circular(AppSpacing.cardRadius);
     if (photo.thumbnailData != null && photo.thumbnailData!.isNotEmpty) {
       final img = ClipRRect(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: borderRadius,
         child: Image.memory(
           photo.thumbnailData!,
           fit: BoxFit.contain,
@@ -43,8 +45,8 @@ class SwipeCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Theme.of(
                   context,
-                ).colorScheme.background.withOpacity(0.9),
-                borderRadius: BorderRadius.circular(24),
+                ).colorScheme.surface.withValues(alpha: 0.9),
+                borderRadius: borderRadius,
               ),
             ),
           ],
@@ -56,14 +58,18 @@ class SwipeCard extends StatelessWidget {
       imageWidget = Container(
         color: Colors.black,
         alignment: Alignment.center,
-        child: const Icon(Icons.broken_image, color: Colors.white, size: 80),
+        child: Icon(
+          Icons.broken_image,
+          color: Colors.white,
+          size: Scale.of(context, 80),
+        ),
       );
     }
     return AspectRatio(
       aspectRatio: aspectRatio,
       child: Card(
         elevation: 12,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        shape: RoundedRectangleBorder(borderRadius: borderRadius),
         clipBehavior: Clip.antiAlias,
         child: Stack(
           alignment: Alignment.center,
@@ -71,7 +77,7 @@ class SwipeCard extends StatelessWidget {
             imageWidget,
             if (showLiveLabel && liveLabel != null && liveLabelColor != null)
               Positioned(
-                top: 32,
+                top: Scale.of(context, 32),
                 left: 0,
                 right: 0,
                 child: AnimatedOpacity(
@@ -80,15 +86,15 @@ class SwipeCard extends StatelessWidget {
                   child: Center(
                     child: Text(
                       liveLabel!,
-                      style: TextStyle(
+                      style: AppTextStyles.headline(context).copyWith(
                         color: liveLabelColor,
-                        fontSize: 36,
-                        fontWeight: FontWeight.bold,
+                        fontSize: Scale.of(context, 36),
                         letterSpacing: 2,
+                        fontWeight: FontWeight.bold,
                         shadows: [
                           Shadow(
                             blurRadius: 20,
-                            color: liveLabelColor!.withOpacity(0.7),
+                            color: liveLabelColor!.withValues(alpha: 0.7),
                             offset: Offset(0, 0),
                           ),
                         ],

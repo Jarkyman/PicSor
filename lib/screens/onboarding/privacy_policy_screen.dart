@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../core/theme.dart';
 
 class PrivacyPolicyScreen extends StatelessWidget {
   final VoidCallback onAccept;
-  const PrivacyPolicyScreen({Key? key, required this.onAccept})
-    : super(key: key);
+  const PrivacyPolicyScreen({super.key, required this.onAccept});
 
   @override
   Widget build(BuildContext context) {
@@ -11,36 +11,35 @@ class PrivacyPolicyScreen extends StatelessWidget {
       body: SafeArea(
         child: Center(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const SizedBox(height: 48), // Ekstra padding i toppen
-                // Privacy ikon
+                SizedBox(height: AppSpacing.xl + AppSpacing.lg),
                 Container(
-                  width: 100,
-                  height: 100,
+                  width: Scale.of(context, 100),
+                  height: Scale.of(context, 100),
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(24),
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(AppSpacing.lg),
                   ),
-                  child: const Center(
+                  child: Center(
                     child: Icon(
                       Icons.privacy_tip_outlined,
-                      size: 56,
-                      color: Colors.grey,
+                      size: Scale.of(context, 56),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.7),
                     ),
                   ),
                 ),
-                const SizedBox(height: 40), // Mere luft ned til teksten
+                SizedBox(height: AppSpacing.xl),
                 Text(
                   'Privacy Policy',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: AppTextStyles.headline(context),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: AppSpacing.lg),
                 const Expanded(
                   child: SingleChildScrollView(
                     child: Text(
@@ -83,24 +82,28 @@ By using PicSor, you agree to this privacy policy and the terms described above.
                     ),
                   ),
                 ),
-                const SizedBox(height: 32),
+                SizedBox(height: AppSpacing.xl),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: onAccept,
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: EdgeInsets.symmetric(
+                        vertical: Scale.of(context, 16),
+                      ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.buttonRadius,
+                        ),
                       ),
                     ),
-                    child: const Text(
+                    child: Text(
                       'I accept',
-                      style: TextStyle(fontSize: 18),
+                      style: AppTextStyles.button(context),
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: AppSpacing.lg),
               ],
             ),
           ),

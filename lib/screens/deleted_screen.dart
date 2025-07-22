@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/photo_action.dart';
 import 'dart:typed_data';
 import 'package:photo_manager/photo_manager.dart';
+import '../core/theme.dart';
 
 class DeletedScreen extends StatefulWidget {
   final List<PhotoAction> actions;
@@ -57,7 +58,10 @@ class _DeletedScreenState extends State<DeletedScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Deleted $deletedCount photo(s)'),
+            content: Text(
+              'Deleted $deletedCount photo(s)',
+              style: AppTextStyles.body(context),
+            ),
             duration: const Duration(seconds: 2),
           ),
         );
@@ -72,18 +76,27 @@ class _DeletedScreenState extends State<DeletedScreen> {
   Widget build(BuildContext context) {
     if (_deletedActions.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Deleted')),
-        body: const Center(child: Text('No photos to delete')),
+        appBar: AppBar(
+          title: Text('Deleted', style: AppTextStyles.title(context)),
+        ),
+        body: Center(
+          child: Text(
+            'No photos to delete',
+            style: AppTextStyles.body(context),
+          ),
+        ),
       );
     }
     return Scaffold(
-      appBar: AppBar(title: const Text('Deleted')),
+      appBar: AppBar(
+        title: Text('Deleted', style: AppTextStyles.title(context)),
+      ),
       body: GridView.builder(
-        padding: const EdgeInsets.all(8),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        padding: EdgeInsets.all(AppSpacing.sm),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3,
-          crossAxisSpacing: 8,
-          mainAxisSpacing: 8,
+          crossAxisSpacing: AppSpacing.sm,
+          mainAxisSpacing: AppSpacing.sm,
         ),
         itemCount: _deletedActions.length,
         itemBuilder: (context, index) {
@@ -106,11 +119,11 @@ class _DeletedScreenState extends State<DeletedScreen> {
                     Image.memory(snapshot.data!, fit: BoxFit.cover),
                     if (selected)
                       Container(
-                        color: Colors.black.withOpacity(0.3),
-                        child: const Icon(
+                        color: Colors.black.withValues(alpha: 0.3),
+                        child: Icon(
                           Icons.check_circle,
-                          color: Colors.green,
-                          size: 32,
+                          color: AppColors.secondary,
+                          size: Scale.of(context, 32),
                         ),
                       ),
                   ],
@@ -124,8 +137,8 @@ class _DeletedScreenState extends State<DeletedScreen> {
           _selectedIds.isNotEmpty && !_deleting
               ? FloatingActionButton.extended(
                 onPressed: _deleteSelected,
-                icon: const Icon(Icons.delete),
-                label: const Text('Delete Selected'),
+                icon: Icon(Icons.delete, size: Scale.of(context, 24)),
+                label: Text('Delete Selected'),
               )
               : null,
     );

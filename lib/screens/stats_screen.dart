@@ -4,6 +4,7 @@ import '../services/gallery_service.dart';
 import '../models/photo_action.dart';
 import '../models/photo_model.dart';
 import 'dart:typed_data';
+import '../core/theme.dart';
 
 class StatsScreen extends StatefulWidget {
   final List<PhotoAction> actions;
@@ -71,7 +72,7 @@ class _StatsScreenState extends State<StatsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Stats')),
+      appBar: AppBar(title: Text('Stats', style: AppTextStyles.title(context))),
       body: FutureBuilder<List<PhotoModel>>(
         future: _futureAssets,
         builder: (context, snapshot) {
@@ -79,7 +80,12 @@ class _StatsScreenState extends State<StatsScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No media found.'));
+            return Center(
+              child: Text(
+                'No media found.',
+                style: AppTextStyles.body(context),
+              ),
+            );
           }
           return FutureBuilder<void>(
             future: _calculateStats(snapshot.data!),
@@ -92,7 +98,7 @@ class _StatsScreenState extends State<StatsScreen> {
                       ? 0.0
                       : (_swipedCount / (_totalPhotos + _totalVideos)) * 100;
               return ListView(
-                padding: const EdgeInsets.all(24),
+                padding: EdgeInsets.all(AppSpacing.lg),
                 children: [
                   _StatBlock(
                     icon: Icons.photo_library,
@@ -147,15 +153,13 @@ class _StatBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+      padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
       child: Row(
         children: [
-          Icon(icon, size: 32),
-          const SizedBox(width: 20),
-          Expanded(
-            child: Text(label, style: Theme.of(context).textTheme.titleMedium),
-          ),
-          Text(value, style: Theme.of(context).textTheme.titleLarge),
+          Icon(icon, size: Scale.of(context, 32)),
+          SizedBox(width: AppSpacing.md),
+          Expanded(child: Text(label, style: AppTextStyles.label(context))),
+          Text(value, style: AppTextStyles.headline(context)),
         ],
       ),
     );

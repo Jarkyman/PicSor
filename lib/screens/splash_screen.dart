@@ -10,6 +10,7 @@ import 'onboarding/privacy_policy_screen.dart';
 import 'onboarding/intro_screen.dart';
 import 'onboarding/bonus_swipes_screen.dart';
 import '../services/swipe_storage_service.dart';
+import '../core/theme.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -96,12 +97,15 @@ class _SplashScreenState extends State<SplashScreen> {
           context: context,
           builder:
               (context) => AlertDialog(
-                title: const Text('Error'),
-                content: Text('Failed to load app data: $e'),
+                title: Text('Error', style: AppTextStyles.title(context)),
+                content: Text(
+                  'Failed to load app data: $e',
+                  style: AppTextStyles.body(context),
+                ),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('OK'),
+                    child: Text('OK', style: AppTextStyles.button(context)),
                   ),
                 ],
               ),
@@ -120,15 +124,15 @@ class _SplashScreenState extends State<SplashScreen> {
             children: [
               Icon(
                 Icons.photo_library_outlined,
-                size: 72,
-                color: Theme.of(context).colorScheme.primary,
+                size: Scale.of(context, 72),
+                color: AppColors.primary,
               ),
-              const SizedBox(height: 32),
+              SizedBox(height: AppSpacing.xl),
               const CircularProgressIndicator(),
-              const SizedBox(height: 24),
-              const Text(
+              SizedBox(height: AppSpacing.lg),
+              Text(
                 'Loading your gallery...',
-                style: TextStyle(fontSize: 18),
+                style: AppTextStyles.title(context),
               ),
             ],
           ),

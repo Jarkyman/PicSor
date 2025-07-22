@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../../core/theme.dart';
 
 class PhotoPermissionScreen extends StatefulWidget {
   final VoidCallback onNext;
-  const PhotoPermissionScreen({Key? key, required this.onNext})
-    : super(key: key);
+  const PhotoPermissionScreen({super.key, required this.onNext});
 
   @override
   State<PhotoPermissionScreen> createState() => _PhotoPermissionScreenState();
@@ -38,55 +38,71 @@ class _PhotoPermissionScreenState extends State<PhotoPermissionScreen> {
       body: SafeArea(
         child: Center(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Kamera/billede placeholder
+                SizedBox(height: AppSpacing.xl + AppSpacing.lg),
                 Container(
-                  width: 100,
-                  height: 100,
+                  width: Scale.of(context, 100),
+                  height: Scale.of(context, 100),
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(24),
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(AppSpacing.lg),
                   ),
-                  child: const Center(
+                  child: Center(
                     child: Icon(
                       Icons.camera_alt_outlined,
-                      size: 56,
-                      color: Colors.grey,
+                      size: Scale.of(context, 56),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.7),
                     ),
                   ),
                 ),
-                const SizedBox(height: 32),
+                SizedBox(height: AppSpacing.xl),
                 Text(
                   'Photo Access Required',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: AppTextStyles.headline(context),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 20),
-                const Text(
+                SizedBox(height: AppSpacing.lg),
+                Text(
                   'PicSor works 100% offline and never uploads your photos.\n\nWe only use your photos and videos to help you sort and organize your gallery on your device.',
-                  style: TextStyle(fontSize: 16),
+                  style: AppTextStyles.body(context),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 40),
-                if (!_granted && _requested)
+                SizedBox(height: AppSpacing.xl + AppSpacing.md),
+                if (!_granted && !_requested)
+                  Column(
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(height: AppSpacing.lg),
+                      Text(
+                        'Checking photo access...',
+                        style: AppTextStyles.body(context),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  )
+                else if (!_granted && _requested)
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: _openSettings,
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        padding: EdgeInsets.symmetric(
+                          vertical: Scale.of(context, 16),
+                        ),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(
+                            AppSpacing.buttonRadius,
+                          ),
                         ),
                       ),
-                      child: const Text(
+                      child: Text(
                         'Go to settings',
-                        style: TextStyle(fontSize: 18),
+                        style: AppTextStyles.button(context),
                       ),
                     ),
                   )
@@ -96,16 +112,19 @@ class _PhotoPermissionScreenState extends State<PhotoPermissionScreen> {
                     child: ElevatedButton(
                       onPressed: widget.onNext,
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        padding: EdgeInsets.symmetric(
+                          vertical: Scale.of(context, 16),
+                        ),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(
+                            AppSpacing.buttonRadius,
+                          ),
                         ),
                       ),
-                      child: const Text('Next', style: TextStyle(fontSize: 18)),
+                      child: Text('Next', style: AppTextStyles.button(context)),
                     ),
-                  )
-                else
-                  const CircularProgressIndicator(),
+                  ),
+                SizedBox(height: AppSpacing.lg),
               ],
             ),
           ),

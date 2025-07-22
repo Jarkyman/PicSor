@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../core/app_routes.dart';
+import '../core/theme.dart';
 
 class BottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -12,21 +12,32 @@ class BottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final iconSize = Scale.of(context, 28);
     return BottomNavigationBar(
       currentIndex: currentIndex,
       onTap: onTap,
       type: BottomNavigationBarType.fixed,
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.swipe), label: 'Swipe'),
+      selectedItemColor: Theme.of(context).colorScheme.primary,
+      unselectedItemColor: Theme.of(
+        context,
+      ).colorScheme.onSurface.withValues(alpha: 0.7),
+      items: [
         BottomNavigationBarItem(
-          icon: Icon(Icons.delete_outline),
+          icon: Icon(Icons.swipe, size: iconSize),
+          label: 'Swipe',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.delete_outline, size: iconSize),
           label: 'Deleted',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.watch_later_outlined),
+          icon: Icon(Icons.watch_later_outlined, size: iconSize),
           label: 'Sort Later',
         ),
-        BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Stats'),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.bar_chart, size: iconSize),
+          label: 'Stats',
+        ),
       ],
     );
   }

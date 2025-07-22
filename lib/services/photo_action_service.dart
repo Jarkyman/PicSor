@@ -56,7 +56,7 @@ class PhotoActionService {
   static Future<void> sharePhoto(PhotoModel photo) async {
     final file = await photo.asset.file;
     if (file != null && await file.exists()) {
-      await Share.shareXFiles([XFile(file.path)]);
+      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)]));
     }
   }
 
