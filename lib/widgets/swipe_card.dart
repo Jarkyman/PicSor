@@ -43,7 +43,9 @@ class SwipeCard extends StatelessWidget {
             img,
             Container(
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
+                color: Theme.of(
+                  context,
+                ).colorScheme.surface.withValues(alpha: 0.9),
                 borderRadius: borderRadius,
               ),
             ),
@@ -92,7 +94,7 @@ class SwipeCard extends StatelessWidget {
                         shadows: [
                           Shadow(
                             blurRadius: 20,
-                            color: liveLabelColor!.withOpacity(0.7),
+                            color: liveLabelColor!.withValues(alpha: 0.7),
                             offset: Offset(0, 0),
                           ),
                         ],

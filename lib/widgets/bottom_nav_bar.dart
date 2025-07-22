@@ -21,7 +21,7 @@ class BottomNavBar extends StatelessWidget {
       selectedItemColor: Theme.of(context).colorScheme.primary,
       unselectedItemColor: Theme.of(
         context,
-      ).colorScheme.onSurface.withOpacity(0.7),
+      ).colorScheme.onSurface.withValues(alpha: 0.7),
       items: [
         BottomNavigationBarItem(
           icon: Icon(Icons.swipe, size: iconSize),

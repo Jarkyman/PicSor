@@ -524,7 +524,7 @@ class _SwipeScreenState extends State<SwipeScreen>
                 onTap: () => Navigator.of(context).pop(),
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                  child: Container(color: Colors.black.withOpacity(0.25)),
+                  child: Container(color: Colors.black.withValues(alpha: 0.25)),
                 ),
               ),
             ),
@@ -570,7 +570,7 @@ class _SwipeScreenState extends State<SwipeScreen>
                                         color: Theme.of(context)
                                             .colorScheme
                                             .surfaceVariant
-                                            .withOpacity(0.8),
+                                            .withValues(alpha: 0.8),
                                         borderRadius: BorderRadius.circular(
                                           AppSpacing.md,
                                         ),
@@ -736,9 +736,10 @@ class _SwipeScreenState extends State<SwipeScreen>
                                 horizontal: AppSpacing.lg,
                               ),
                               child: Material(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.surfaceVariant.withOpacity(0.8),
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .surfaceVariant
+                                    .withValues(alpha: 0.8),
                                 borderRadius: BorderRadius.circular(
                                   AppSpacing.md,
                                 ),
@@ -880,9 +881,10 @@ class _SwipeScreenState extends State<SwipeScreen>
                                 horizontal: AppSpacing.lg,
                               ),
                               child: Material(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.surfaceVariant.withOpacity(0.8),
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .surfaceVariant
+                                    .withValues(alpha: 0.8),
                                 borderRadius: BorderRadius.circular(
                                   AppSpacing.md,
                                 ),
@@ -1117,7 +1119,7 @@ class _SwipeScreenState extends State<SwipeScreen>
                         shadows: [
                           Shadow(
                             blurRadius: 24,
-                            color: liveLabelColor.withOpacity(0.8),
+                            color: liveLabelColor.withValues(alpha: 0.8),
                             offset: Offset(0, 0),
                           ),
                         ],

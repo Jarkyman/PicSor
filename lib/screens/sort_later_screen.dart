@@ -101,7 +101,7 @@ class _SortLaterScreenState extends State<SortLaterScreen> {
                     Image.memory(snapshot.data!, fit: BoxFit.cover),
                     if (selected)
                       Container(
-                        color: Colors.black.withOpacity(0.3),
+                        color: Colors.black.withValues(alpha: 0.3),
                         child: Icon(
                           Icons.check_circle,
                           color: AppColors.primary,

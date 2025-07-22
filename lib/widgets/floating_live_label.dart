@@ -36,7 +36,7 @@ class FloatingLiveLabel extends StatelessWidget {
               shadows: [
                 Shadow(
                   blurRadius: 24,
-                  color: color.withOpacity(0.8),
+                  color: color.withValues(alpha: 0.8),
                   offset: Offset(0, 0),
                 ),
               ],

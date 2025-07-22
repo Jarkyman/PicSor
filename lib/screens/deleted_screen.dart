@@ -119,7 +119,7 @@ class _DeletedScreenState extends State<DeletedScreen> {
                     Image.memory(snapshot.data!, fit: BoxFit.cover),
                     if (selected)
                       Container(
-                        color: Colors.black.withOpacity(0.3),
+                        color: Colors.black.withValues(alpha: 0.3),
                         child: Icon(
                           Icons.check_circle,
                           color: AppColors.secondary,

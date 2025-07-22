@@ -30,7 +30,7 @@ class WelcomeScreen extends StatelessWidget {
                       size: Scale.of(context, 56),
                       color: Theme.of(
                         context,
-                      ).colorScheme.primary.withOpacity(0.7),
+                      ).colorScheme.primary.withValues(alpha: 0.7),
                     ),
                   ),
                 ),
