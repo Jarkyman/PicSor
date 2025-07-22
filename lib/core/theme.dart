@@ -5,15 +5,19 @@ class AppColors {
   static const primary = Color(0xFF3A5A98);
   static const secondary = Color(0xFF6C8CD5);
   static const surface = Color(0xFFFFFFFF);
+  static const surfaceVariant = Color(0xFFF5F5F5);
   static const error = Color(0xFFD32F2F);
   static const onPrimary = Colors.white;
   static const onSecondary = Colors.white;
   static const onSurface = Color(0xFF222222);
+  static const onSurfaceVariant = Color(0xFF222222);
   static const onError = Colors.white;
 
   // Dark mode
   static const darkSurface = Color(0xFF23262F);
+  static const darkSurfaceVariant = Color(0xFF2A2D36);
   static const darkOnSurface = Color(0xFFF7F8FA);
+  static const darkOnSurfaceVariant = Color(0xFFF7F8FA);
 }
 
 // Spacing and radius
@@ -72,7 +76,9 @@ ThemeData appTheme = ThemeData(
     secondary: AppColors.secondary,
     onSecondary: AppColors.onSecondary,
     surface: AppColors.surface,
+    surfaceVariant: AppColors.surfaceVariant,
     onSurface: AppColors.onSurface,
+    onSurfaceVariant: AppColors.onSurfaceVariant,
     error: AppColors.error,
     onError: AppColors.onError,
   ),
@@ -122,7 +128,9 @@ ThemeData appDarkTheme = ThemeData(
     secondary: AppColors.secondary,
     onSecondary: AppColors.onSecondary,
     surface: AppColors.darkSurface,
+    surfaceVariant: AppColors.darkSurfaceVariant,
     onSurface: AppColors.darkOnSurface,
+    onSurfaceVariant: AppColors.darkOnSurfaceVariant,
     error: AppColors.error,
     onError: AppColors.onError,
   ),

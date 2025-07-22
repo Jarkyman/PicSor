@@ -567,10 +567,10 @@ class _SwipeScreenState extends State<SwipeScreen>
                                     SizedBox(width: AppSpacing.lg),
                                     Expanded(
                                       child: Material(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .surfaceVariant
-                                            .withValues(alpha: 0.8),
+                                        color:
+                                            Theme.of(
+                                              context,
+                                            ).colorScheme.surfaceVariant,
                                         borderRadius: BorderRadius.circular(
                                           AppSpacing.md,
                                         ),
@@ -672,10 +672,14 @@ class _SwipeScreenState extends State<SwipeScreen>
                                                         ),
                                                     child: Text(
                                                       info.name,
-                                                      style:
-                                                          AppTextStyles.label(
-                                                            context,
-                                                          ),
+                                                      style: AppTextStyles.label(
+                                                        context,
+                                                      ).copyWith(
+                                                        color:
+                                                            Theme.of(context)
+                                                                .colorScheme
+                                                                .onSurfaceVariant,
+                                                      ),
                                                       overflow:
                                                           TextOverflow.ellipsis,
                                                     ),
@@ -695,6 +699,10 @@ class _SwipeScreenState extends State<SwipeScreen>
                                                           context,
                                                           14,
                                                         ),
+                                                        color:
+                                                            Theme.of(context)
+                                                                .colorScheme
+                                                                .onSurfaceVariant,
                                                       ),
                                                     ),
                                                     SizedBox(
@@ -736,10 +744,10 @@ class _SwipeScreenState extends State<SwipeScreen>
                                 horizontal: AppSpacing.lg,
                               ),
                               child: Material(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .surfaceVariant
-                                    .withValues(alpha: 0.8),
+                                color:
+                                    Theme.of(
+                                      context,
+                                    ).colorScheme.surfaceVariant,
                                 borderRadius: BorderRadius.circular(
                                   AppSpacing.md,
                                 ),
@@ -858,12 +866,21 @@ class _SwipeScreenState extends State<SwipeScreen>
                                           Icon(
                                             Icons.add,
                                             size: Scale.of(context, 22),
+                                            color:
+                                                Theme.of(
+                                                  context,
+                                                ).colorScheme.onSurfaceVariant,
                                           ),
                                           SizedBox(width: AppSpacing.sm),
                                           Text(
                                             'Add',
                                             style: AppTextStyles.button(
                                               context,
+                                            ).copyWith(
+                                              color:
+                                                  Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurfaceVariant,
                                             ),
                                           ),
                                         ],
@@ -881,10 +898,10 @@ class _SwipeScreenState extends State<SwipeScreen>
                                 horizontal: AppSpacing.lg,
                               ),
                               child: Material(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .surfaceVariant
-                                    .withValues(alpha: 0.8),
+                                color:
+                                    Theme.of(
+                                      context,
+                                    ).colorScheme.surfaceVariant,
                                 borderRadius: BorderRadius.circular(
                                   AppSpacing.md,
                                 ),
@@ -898,7 +915,14 @@ class _SwipeScreenState extends State<SwipeScreen>
                                     child: Center(
                                       child: Text(
                                         'Close',
-                                        style: AppTextStyles.button(context),
+                                        style: AppTextStyles.button(
+                                          context,
+                                        ).copyWith(
+                                          color:
+                                              Theme.of(
+                                                context,
+                                              ).colorScheme.onSurfaceVariant,
+                                        ),
                                       ),
                                     ),
                                   ),
