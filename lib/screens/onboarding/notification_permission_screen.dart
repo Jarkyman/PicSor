@@ -5,8 +5,7 @@ import '../../core/theme.dart';
 
 class NotificationPermissionScreen extends StatefulWidget {
   final VoidCallback onNext;
-  const NotificationPermissionScreen({Key? key, required this.onNext})
-    : super(key: key);
+  const NotificationPermissionScreen({super.key, required this.onNext});
 
   @override
   State<NotificationPermissionScreen> createState() =>

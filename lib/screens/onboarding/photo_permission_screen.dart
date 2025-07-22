@@ -4,8 +4,7 @@ import '../../core/theme.dart';
 
 class PhotoPermissionScreen extends StatefulWidget {
   final VoidCallback onNext;
-  const PhotoPermissionScreen({Key? key, required this.onNext})
-    : super(key: key);
+  const PhotoPermissionScreen({super.key, required this.onNext});
 
   @override
   State<PhotoPermissionScreen> createState() => _PhotoPermissionScreenState();

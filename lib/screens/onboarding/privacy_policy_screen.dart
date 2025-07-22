@@ -3,8 +3,7 @@ import '../../core/theme.dart';
 
 class PrivacyPolicyScreen extends StatelessWidget {
   final VoidCallback onAccept;
-  const PrivacyPolicyScreen({Key? key, required this.onAccept})
-    : super(key: key);
+  const PrivacyPolicyScreen({super.key, required this.onAccept});
 
   @override
   Widget build(BuildContext context) {

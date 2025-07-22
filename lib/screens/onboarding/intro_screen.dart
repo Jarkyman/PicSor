@@ -3,7 +3,7 @@ import '../../core/theme.dart';
 
 class IntroScreen extends StatelessWidget {
   final VoidCallback onContinue;
-  const IntroScreen({Key? key, required this.onContinue}) : super(key: key);
+  const IntroScreen({super.key, required this.onContinue});
 
   @override
   Widget build(BuildContext context) {

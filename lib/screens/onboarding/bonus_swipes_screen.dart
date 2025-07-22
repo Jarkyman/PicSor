@@ -3,8 +3,7 @@ import '../../core/theme.dart';
 
 class BonusSwipesScreen extends StatelessWidget {
   final VoidCallback onClaimed;
-  const BonusSwipesScreen({Key? key, required this.onClaimed})
-    : super(key: key);
+  const BonusSwipesScreen({super.key, required this.onClaimed});
 
   @override
   Widget build(BuildContext context) {
