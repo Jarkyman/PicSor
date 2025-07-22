@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/theme.dart';
 
 class FloatingLiveLabel extends StatelessWidget {
   final String label;
@@ -27,9 +28,9 @@ class FloatingLiveLabel extends StatelessWidget {
           padding: padding,
           child: Text(
             label,
-            style: TextStyle(
+            style: AppTextStyles.headline(context).copyWith(
               color: color,
-              fontSize: 36,
+              fontSize: Scale.of(context, 36),
               fontWeight: FontWeight.bold,
               letterSpacing: 2,
               shadows: [
