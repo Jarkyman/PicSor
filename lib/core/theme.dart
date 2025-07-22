@@ -110,6 +110,13 @@ ThemeData appTheme = ThemeData(
       textStyle: const TextStyle(fontWeight: FontWeight.w600),
     ),
   ),
+  snackBarTheme: SnackBarThemeData(
+    backgroundColor: AppColors.surface,
+    contentTextStyle: TextStyle(color: AppColors.onSurface, fontSize: 16),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(AppSpacing.md),
+    ),
+  ),
 );
 
 // Centralized ThemeData (dark)
@@ -153,6 +160,13 @@ ThemeData appDarkTheme = ThemeData(
     style: TextButton.styleFrom(
       foregroundColor: AppColors.primary,
       textStyle: const TextStyle(fontWeight: FontWeight.w600),
+    ),
+  ),
+  snackBarTheme: SnackBarThemeData(
+    backgroundColor: AppColors.darkSurface,
+    contentTextStyle: TextStyle(color: AppColors.darkOnSurface, fontSize: 16),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(AppSpacing.md),
     ),
   ),
 );

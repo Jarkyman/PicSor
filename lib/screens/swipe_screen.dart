@@ -19,6 +19,7 @@ import '../widgets/floating_live_label.dart';
 import 'dart:io';
 import 'dart:ui';
 import '../models/album_info.dart';
+import '../core/theme.dart';
 
 class SwipeScreen extends StatefulWidget {
   final SwipeLogicService swipeLogicService;
@@ -118,14 +119,18 @@ class _SwipeScreenState extends State<SwipeScreen>
       barrierDismissible: false,
       builder:
           (context) => AlertDialog(
-            title: const Text('Time Manipulation Detected'),
-            content: const Text(
+            title: Text(
+              'Time Manipulation Detected',
+              style: AppTextStyles.title(context),
+            ),
+            content: Text(
               'Device time appears to have been set backwards. Swiping is blocked. Please correct your system time.',
+              style: AppTextStyles.body(context),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('OK'),
+                child: Text('OK', style: AppTextStyles.button(context)),
               ),
             ],
           ),
@@ -227,7 +232,10 @@ class _SwipeScreenState extends State<SwipeScreen>
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Returned ${result.length} photo(s) to swipe queue'),
+          content: Text(
+            'Returned ${result.length} photo(s) to swipe queue',
+            style: AppTextStyles.body(context),
+          ),
           duration: const Duration(seconds: 1),
         ),
       );
@@ -240,9 +248,9 @@ class _SwipeScreenState extends State<SwipeScreen>
       return Container(
         color: Colors.black,
         alignment: Alignment.center,
-        child: const Text(
+        child: Text(
           'Media not downloaded\n(Open Photos app to download)',
-          style: TextStyle(color: Colors.white, fontSize: 16),
+          style: AppTextStyles.body(context).copyWith(color: Colors.white),
           textAlign: TextAlign.center,
         ),
       );
@@ -252,7 +260,7 @@ class _SwipeScreenState extends State<SwipeScreen>
     );
     if (thumb != null && thumb.isNotEmpty) {
       return ClipRRect(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
         child: Image.memory(thumb, fit: BoxFit.cover),
       );
     }
@@ -262,7 +270,7 @@ class _SwipeScreenState extends State<SwipeScreen>
       final bytes = await file.readAsBytes();
       if (bytes.isNotEmpty) {
         return ClipRRect(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
           child: Image.memory(bytes, fit: BoxFit.cover),
         );
       }
@@ -270,7 +278,11 @@ class _SwipeScreenState extends State<SwipeScreen>
     return Container(
       color: Colors.black,
       alignment: Alignment.center,
-      child: const Icon(Icons.broken_image, color: Colors.white, size: 80),
+      child: Icon(
+        Icons.broken_image,
+        color: Colors.white,
+        size: Scale.of(context, 80),
+      ),
     );
   }
 
@@ -448,6 +460,7 @@ class _SwipeScreenState extends State<SwipeScreen>
               SnackBar(
                 content: Text(
                   'Photo access denied. Please allow full access in Settings.',
+                  style: AppTextStyles.body(context),
                 ),
                 action: SnackBarAction(
                   label: 'Settings',
@@ -465,6 +478,7 @@ class _SwipeScreenState extends State<SwipeScreen>
               SnackBar(
                 content: Text(
                   'Could not update favorite. Try again or check permissions.',
+                  style: AppTextStyles.body(context),
                 ),
                 duration: Duration(seconds: 2),
               ),
@@ -477,6 +491,7 @@ class _SwipeScreenState extends State<SwipeScreen>
             SnackBar(
               content: Text(
                 'Could not update favorite. Try again or check permissions.',
+                style: AppTextStyles.body(context),
               ),
               duration: Duration(seconds: 2),
             ),
@@ -489,9 +504,11 @@ class _SwipeScreenState extends State<SwipeScreen>
   Future<void> _showAlbumPicker(PhotoModel photo) async {
     final albums = await PhotoActionService.getAlbums();
     if (albums.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('No albums found.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No albums found.', style: AppTextStyles.body(context)),
+        ),
+      );
       return;
     }
     final selected = await showDialog<String>(
@@ -513,21 +530,18 @@ class _SwipeScreenState extends State<SwipeScreen>
             ),
             Center(
               child: Dialog(
-                insetPadding: const EdgeInsets.all(24),
+                insetPadding: EdgeInsets.all(AppSpacing.lg),
                 child: SizedBox(
-                  width: 400,
-                  height: 500,
+                  width: Scale.of(context, 400),
+                  height: Scale.of(context, 500),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Padding(
-                        padding: EdgeInsets.all(16),
+                      Padding(
+                        padding: EdgeInsets.all(AppSpacing.lg),
                         child: Text(
                           'Add to Album',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: AppTextStyles.title(context),
                         ),
                       ),
                       const Divider(),
@@ -542,45 +556,47 @@ class _SwipeScreenState extends State<SwipeScreen>
                             }
                             final albumInfos = snap.data!;
                             return ListView.separated(
-                              padding: const EdgeInsets.only(bottom: 24),
+                              padding: EdgeInsets.only(bottom: AppSpacing.lg),
                               itemCount: albumInfos.length,
                               separatorBuilder:
-                                  (_, __) => const SizedBox(height: 16),
+                                  (_, __) => SizedBox(height: AppSpacing.lg),
                               itemBuilder: (context, i) {
                                 final info = albumInfos[i];
                                 return Row(
                                   children: [
-                                    const SizedBox(width: 24),
+                                    SizedBox(width: AppSpacing.lg),
                                     Expanded(
                                       child: Material(
                                         color: Theme.of(context)
                                             .colorScheme
                                             .surfaceVariant
                                             .withOpacity(0.8),
-                                        borderRadius: BorderRadius.circular(16),
+                                        borderRadius: BorderRadius.circular(
+                                          AppSpacing.md,
+                                        ),
                                         child: InkWell(
                                           borderRadius: BorderRadius.circular(
-                                            16,
+                                            AppSpacing.md,
                                           ),
                                           onTap:
                                               () => Navigator.of(
                                                 context,
                                               ).pop(info.name),
                                           child: SizedBox(
-                                            height: 56,
+                                            height: Scale.of(context, 56),
                                             child: Row(
                                               children: [
                                                 if (info.thumb != null)
                                                   ClipRRect(
                                                     borderRadius:
-                                                        const BorderRadius.only(
+                                                        BorderRadius.only(
                                                           topLeft:
                                                               Radius.circular(
-                                                                16,
+                                                                AppSpacing.md,
                                                               ),
                                                           bottomLeft:
                                                               Radius.circular(
-                                                                16,
+                                                                AppSpacing.md,
                                                               ),
                                                           topRight:
                                                               Radius.circular(
@@ -593,15 +609,27 @@ class _SwipeScreenState extends State<SwipeScreen>
                                                         ),
                                                     child: Image.memory(
                                                       info.thumb!,
-                                                      width: 56,
-                                                      height: 56,
+                                                      width: Scale.of(
+                                                        context,
+                                                        56,
+                                                      ),
+                                                      height: Scale.of(
+                                                        context,
+                                                        56,
+                                                      ),
                                                       fit: BoxFit.cover,
                                                     ),
                                                   )
                                                 else
                                                   Container(
-                                                    width: 56,
-                                                    height: 56,
+                                                    width: Scale.of(
+                                                      context,
+                                                      56,
+                                                    ),
+                                                    height: Scale.of(
+                                                      context,
+                                                      56,
+                                                    ),
                                                     decoration: const BoxDecoration(
                                                       color: Color(0xFFE0E0E0),
                                                       borderRadius:
@@ -624,58 +652,73 @@ class _SwipeScreenState extends State<SwipeScreen>
                                                                 ),
                                                           ),
                                                     ),
-                                                    child: const Icon(
+                                                    child: Icon(
                                                       Icons.photo,
-                                                      size: 28,
-                                                      color: Colors.grey,
+                                                      size: Scale.of(
+                                                        context,
+                                                        16,
+                                                      ),
+                                                      color:
+                                                          AppColors.secondary,
                                                     ),
                                                   ),
-                                                const SizedBox(width: 16),
+                                                SizedBox(width: AppSpacing.sm),
                                                 Expanded(
                                                   child: Padding(
                                                     padding:
-                                                        const EdgeInsets.symmetric(
-                                                          vertical: 8,
+                                                        EdgeInsets.symmetric(
+                                                          vertical:
+                                                              AppSpacing.sm,
                                                         ),
                                                     child: Text(
                                                       info.name,
-                                                      style: const TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight:
-                                                            FontWeight.w500,
-                                                      ),
+                                                      style:
+                                                          AppTextStyles.label(
+                                                            context,
+                                                          ),
                                                       overflow:
                                                           TextOverflow.ellipsis,
                                                     ),
                                                   ),
                                                 ),
-                                                const SizedBox(width: 12),
+                                                SizedBox(width: AppSpacing.sm),
                                                 Row(
                                                   mainAxisSize:
                                                       MainAxisSize.min,
                                                   children: [
                                                     Text(
                                                       '${info.count}',
-                                                      style: const TextStyle(
-                                                        fontSize: 14,
+                                                      style: AppTextStyles.body(
+                                                        context,
+                                                      ).copyWith(
+                                                        fontSize: Scale.of(
+                                                          context,
+                                                          14,
+                                                        ),
                                                       ),
                                                     ),
-                                                    const SizedBox(width: 4),
-                                                    const Icon(
-                                                      Icons
-                                                          .photo_library_outlined,
-                                                      size: 18,
+                                                    SizedBox(
+                                                      width: AppSpacing.xs,
+                                                    ),
+                                                    Icon(
+                                                      Icons.photo,
+                                                      size: Scale.of(
+                                                        context,
+                                                        16,
+                                                      ),
+                                                      color:
+                                                          AppColors.secondary,
                                                     ),
                                                   ],
                                                 ),
-                                                const SizedBox(width: 12),
+                                                SizedBox(width: AppSpacing.sm),
                                               ],
                                             ),
                                           ),
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(width: 24),
+                                    SizedBox(width: AppSpacing.lg),
                                   ],
                                 );
                               },
@@ -683,34 +726,44 @@ class _SwipeScreenState extends State<SwipeScreen>
                           },
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: AppSpacing.lg),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           Expanded(
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 24,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: AppSpacing.lg,
                               ),
                               child: Material(
                                 color: Theme.of(
                                   context,
                                 ).colorScheme.surfaceVariant.withOpacity(0.8),
-                                borderRadius: BorderRadius.circular(16),
+                                borderRadius: BorderRadius.circular(
+                                  AppSpacing.md,
+                                ),
                                 child: InkWell(
-                                  borderRadius: BorderRadius.circular(16),
+                                  borderRadius: BorderRadius.circular(
+                                    AppSpacing.md,
+                                  ),
                                   onTap: () async {
                                     final controller = TextEditingController();
                                     final albumName = await showDialog<String>(
                                       context: context,
                                       builder: (context) {
                                         return AlertDialog(
-                                          title: const Text('New Album'),
+                                          title: Text(
+                                            'New Album',
+                                            style: AppTextStyles.title(context),
+                                          ),
                                           content: TextField(
                                             controller: controller,
                                             autofocus: true,
-                                            decoration: const InputDecoration(
+                                            decoration: InputDecoration(
                                               hintText: 'Album name',
+                                              hintStyle: AppTextStyles.body(
+                                                context,
+                                              ),
                                             ),
                                           ),
                                           actions: [
@@ -720,7 +773,12 @@ class _SwipeScreenState extends State<SwipeScreen>
                                                       Navigator.of(
                                                         context,
                                                       ).pop(),
-                                              child: const Text('Cancel'),
+                                              child: Text(
+                                                'Cancel',
+                                                style: AppTextStyles.button(
+                                                  context,
+                                                ),
+                                              ),
                                             ),
                                             ElevatedButton(
                                               onPressed: () {
@@ -732,7 +790,12 @@ class _SwipeScreenState extends State<SwipeScreen>
                                                   ).pop(name);
                                                 }
                                               },
-                                              child: const Text('Create'),
+                                              child: Text(
+                                                'Create',
+                                                style: AppTextStyles.button(
+                                                  context,
+                                                ),
+                                              ),
                                             ),
                                           ],
                                         );
@@ -755,9 +818,12 @@ class _SwipeScreenState extends State<SwipeScreen>
                                           ScaffoldMessenger.of(
                                             context,
                                           ).showSnackBar(
-                                            const SnackBar(
+                                            SnackBar(
                                               content: Text(
                                                 'Failed to add to new album.',
+                                                style: AppTextStyles.body(
+                                                  context,
+                                                ),
                                               ),
                                             ),
                                           );
@@ -770,9 +836,12 @@ class _SwipeScreenState extends State<SwipeScreen>
                                         ScaffoldMessenger.of(
                                           context,
                                         ).showSnackBar(
-                                          const SnackBar(
+                                          SnackBar(
                                             content: Text(
                                               'Could not create album.',
+                                              style: AppTextStyles.body(
+                                                context,
+                                              ),
                                             ),
                                           ),
                                         );
@@ -780,18 +849,20 @@ class _SwipeScreenState extends State<SwipeScreen>
                                     }
                                   },
                                   child: SizedBox(
-                                    height: 48,
+                                    height: Scale.of(context, 48),
                                     child: Center(
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
-                                        children: const [
-                                          Icon(Icons.add, size: 22),
-                                          SizedBox(width: 8),
+                                        children: [
+                                          Icon(
+                                            Icons.add,
+                                            size: Scale.of(context, 22),
+                                          ),
+                                          SizedBox(width: AppSpacing.sm),
                                           Text(
                                             'Add',
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w500,
+                                            style: AppTextStyles.button(
+                                              context,
                                             ),
                                           ),
                                         ],
@@ -802,29 +873,30 @@ class _SwipeScreenState extends State<SwipeScreen>
                               ),
                             ),
                           ),
-                          const SizedBox(width: 16),
+                          SizedBox(width: AppSpacing.sm),
                           Expanded(
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 24,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: AppSpacing.lg,
                               ),
                               child: Material(
                                 color: Theme.of(
                                   context,
                                 ).colorScheme.surfaceVariant.withOpacity(0.8),
-                                borderRadius: BorderRadius.circular(16),
+                                borderRadius: BorderRadius.circular(
+                                  AppSpacing.md,
+                                ),
                                 child: InkWell(
-                                  borderRadius: BorderRadius.circular(16),
+                                  borderRadius: BorderRadius.circular(
+                                    AppSpacing.md,
+                                  ),
                                   onTap: () => Navigator.of(context).pop(),
                                   child: SizedBox(
-                                    height: 48,
+                                    height: Scale.of(context, 48),
                                     child: Center(
                                       child: Text(
                                         'Close',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w500,
-                                        ),
+                                        style: AppTextStyles.button(context),
                                       ),
                                     ),
                                   ),
@@ -834,7 +906,7 @@ class _SwipeScreenState extends State<SwipeScreen>
                           ),
                         ],
                       ),
-                      const SizedBox(height: 28),
+                      SizedBox(height: AppSpacing.xl),
                     ],
                   ),
                 ),
@@ -847,9 +919,14 @@ class _SwipeScreenState extends State<SwipeScreen>
     if (selected != null) {
       final ok = await PhotoActionService.addToAlbum(photo, selected);
       if (!ok) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to add to album.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Failed to add to album.',
+              style: AppTextStyles.body(context),
+            ),
+          ),
+        );
       }
     }
   }
@@ -915,19 +992,19 @@ class _SwipeScreenState extends State<SwipeScreen>
     }
     return Scaffold(
       appBar: AppBar(
-        title: const Text('PicSor'),
+        title: Text('PicSor', style: AppTextStyles.title(context)),
         actions: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
             child: Center(
               child: Text(
                 '${_swipeLogicService.swipesLeft} swipes',
-                style: Theme.of(context).textTheme.titleMedium,
+                style: AppTextStyles.label(context),
               ),
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.undo),
+            icon: Icon(Icons.undo, size: Scale.of(context, 24)),
             tooltip: 'Undo',
             onPressed:
                 _swipeLogicService.undoStack.isNotEmpty
@@ -939,7 +1016,7 @@ class _SwipeScreenState extends State<SwipeScreen>
                     : null,
           ),
           IconButton(
-            icon: const Icon(Icons.delete_outline),
+            icon: Icon(Icons.delete_outline, size: Scale.of(context, 24)),
             tooltip: 'Deleted',
             onPressed: () {
               Navigator.pushNamed(
@@ -953,7 +1030,7 @@ class _SwipeScreenState extends State<SwipeScreen>
             },
           ),
           IconButton(
-            icon: const Icon(Icons.watch_later_outlined),
+            icon: Icon(Icons.watch_later_outlined, size: Scale.of(context, 24)),
             tooltip: 'Sort Later',
             onPressed: () {
               Navigator.pushNamed(
@@ -972,17 +1049,30 @@ class _SwipeScreenState extends State<SwipeScreen>
         child: Builder(
           builder: (context) {
             if (widget.assets.isEmpty) {
-              return const Center(child: Text('No media found.'));
+              return Center(
+                child: Text(
+                  'No media found.',
+                  style: AppTextStyles.body(context),
+                ),
+              );
             }
             if (_swipeLogicService.deck.isEmpty) {
-              return const Center(child: Text('All images already swiped.'));
+              return Center(
+                child: Text(
+                  'All images already swiped.',
+                  style: AppTextStyles.body(context),
+                ),
+              );
             }
             if (_timeCheatDetected) {
               WidgetsBinding.instance.addPostFrameCallback(
                 (_) => _showTimeCheatDialog(),
               );
-              return const Center(
-                child: Text('Swiping is blocked due to time manipulation.'),
+              return Center(
+                child: Text(
+                  'Swiping is blocked due to time manipulation.',
+                  style: AppTextStyles.body(context),
+                ),
               );
             }
             // Live label logic
@@ -999,15 +1089,15 @@ class _SwipeScreenState extends State<SwipeScreen>
               switch (liveLabel) {
                 case 'Keep':
                   alignment = Alignment.centerRight;
-                  padding = const EdgeInsets.only(right: 24);
+                  padding = EdgeInsets.only(right: AppSpacing.lg);
                   break;
                 case 'Delete':
                   alignment = Alignment.centerLeft;
-                  padding = const EdgeInsets.only(left: 24);
+                  padding = EdgeInsets.only(left: AppSpacing.lg);
                   break;
                 case 'Sort later':
                   alignment = Alignment.topCenter;
-                  padding = const EdgeInsets.only(top: 32);
+                  padding = EdgeInsets.only(top: AppSpacing.xl);
                   break;
               }
               floatingLabel = Align(
@@ -1019,9 +1109,9 @@ class _SwipeScreenState extends State<SwipeScreen>
                     padding: padding,
                     child: Text(
                       liveLabel,
-                      style: TextStyle(
+                      style: AppTextStyles.headline(context).copyWith(
                         color: liveLabelColor,
-                        fontSize: 36,
+                        fontSize: Scale.of(context, 36),
                         fontWeight: FontWeight.bold,
                         letterSpacing: 2,
                         shadows: [
