@@ -53,7 +53,7 @@ class _NotificationPermissionScreenState
         _requested = true;
         _granted = req.isGranted;
       });
-      if (req.isGranted) widget.onNext();
+      // Fjern automatisk navigation her
     } else {
       setState(() {
         _requested = true;
@@ -68,7 +68,7 @@ class _NotificationPermissionScreenState
       _requested = true;
       _granted = status.isGranted;
     });
-    if (status.isGranted) widget.onNext();
+    // Fjern automatisk navigation her
   }
 
   @override
