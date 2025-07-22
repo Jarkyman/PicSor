@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'screens/swipe_screen.dart';
 import 'screens/deleted_screen.dart';
 import 'screens/sort_later_screen.dart';
 import 'core/app_routes.dart';

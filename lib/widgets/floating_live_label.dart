@@ -9,13 +9,13 @@ class FloatingLiveLabel extends StatelessWidget {
   final bool visible;
 
   const FloatingLiveLabel({
-    Key? key,
+    super.key,
     required this.label,
     required this.color,
     required this.alignment,
     this.padding = EdgeInsets.zero,
     this.visible = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

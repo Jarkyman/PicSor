@@ -12,7 +12,7 @@ class SwipeCard extends StatelessWidget {
   final Widget? child;
 
   const SwipeCard({
-    Key? key,
+    super.key,
     required this.photo,
     this.isTop = false,
     this.liveLabel,
@@ -20,7 +20,7 @@ class SwipeCard extends StatelessWidget {
     this.showLiveLabel = false,
     this.aspectRatio = 1.0,
     this.child,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

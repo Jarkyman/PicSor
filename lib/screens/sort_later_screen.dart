@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../models/photo_action.dart';
 import 'dart:typed_data';
 import 'package:photo_manager/photo_manager.dart';
-import '../models/photo_model.dart';
 import '../core/theme.dart';
 
 class SortLaterScreen extends StatefulWidget {

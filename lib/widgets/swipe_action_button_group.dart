@@ -11,18 +11,17 @@ class SwipeActionButtonGroup extends StatelessWidget {
   final VoidCallback onShare;
 
   const SwipeActionButtonGroup({
-    Key? key,
+    super.key,
     required this.photo,
     required this.isFavorite,
     required this.onFavorite,
     required this.isInAlbum,
     required this.onAddToAlbum,
     required this.onShare,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final iconColor = Theme.of(context).colorScheme.onSurface;
     return Column(
       mainAxisSize: MainAxisSize.min,

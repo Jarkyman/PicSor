@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
 import '../models/photo_action.dart';
 import '../models/photo_model.dart';
 import 'swipe_storage_service.dart';
+import 'package:flutter/foundation.dart';
 
 class SwipeLogicService {
   int swipeCap;
@@ -18,7 +18,7 @@ class SwipeLogicService {
   Map<String, String> swipeActions = {};
 
   List<PhotoModel> _deck = [];
-  int _deckStartIndex = 0;
+  int deckStartIndex = 0;
   bool _isDeckInitialized = false;
   List<PhotoModel> _assets = [];
 
@@ -59,17 +59,14 @@ class SwipeLogicService {
     final filtered =
         assets.where((a) => !swipeActions.containsKey(a.id)).toList();
     _deck = filtered.take(deckSize).toList();
-    _deckStartIndex = deckSize;
+    deckStartIndex = deckSize;
     _isDeckInitialized = true;
   }
 
   List<PhotoModel> get deck => _deck;
 
-  int get deckStartIndex => _deckStartIndex;
-  set deckStartIndex(int value) => _deckStartIndex = value;
-
   void handleSwipe(PhotoAction action) {
-    print('handleSwipe: BEFORE deck=${_deck.map((p) => p.id).toList()}');
+    debugPrint('handleSwipe: BEFORE deck=${_deck.map((p) => p.id).toList()}');
     completedActions.add(action);
     undoStack.add(action);
     swipeActions[action.photo.id] = _actionTypeToString(action.action);
@@ -79,7 +76,7 @@ class SwipeLogicService {
     if (_deck.isNotEmpty && _deck.first.id == action.photo.id) {
       _deck.removeAt(0);
     } else {
-      print(
+      debugPrint(
         'WARNING: Tried to swipe id=${action.photo.id} but deck.first=${_deck.isNotEmpty ? _deck.first.id : 'EMPTY'}',
       );
       assert(
@@ -88,18 +85,18 @@ class SwipeLogicService {
       );
     }
     // Refill deck with next unswiped photo, prevent duplicates
-    while (_assets.length > _deckStartIndex) {
-      final next = _assets[_deckStartIndex];
-      _deckStartIndex++;
+    while (_assets.length > deckStartIndex) {
+      final next = _assets[deckStartIndex];
+      deckStartIndex++;
       if (!swipeActions.containsKey(next.id) &&
           !_deck.any((p) => p.id == next.id)) {
         _deck.add(next);
         break;
       }
     }
-    print('handleSwipe: AFTER deck=${_deck.map((p) => p.id).toList()}');
-    print('  swipeActions: $swipeActions');
-    print(
+    debugPrint('handleSwipe: AFTER deck=${_deck.map((p) => p.id).toList()}');
+    debugPrint('  swipeActions: $swipeActions');
+    debugPrint(
       '  completedActions: ${completedActions.map((a) => a.photo.id).toList()}',
     );
     saveState();
@@ -118,7 +115,7 @@ class SwipeLogicService {
 
   void resetDeck() {
     _deck = [];
-    _deckStartIndex = 0;
+    deckStartIndex = 0;
     _isDeckInitialized = false;
   }
 
@@ -163,14 +160,14 @@ class SwipeLogicService {
 
   // Handles swiping the top card in the deck
   void handleDeckSwipe(PhotoActionType type) {
-    print(
+    debugPrint(
       'handleDeckSwipe: type=$type, deck BEFORE=${_deck.map((p) => p.id).toList()}',
     );
     if (_deck.isEmpty || !canSwipe()) return;
     final photo = _deck.first;
     final action = PhotoAction(photo: photo, action: type);
     handleSwipe(action);
-    print(
+    debugPrint(
       'handleDeckSwipe: type=$type, deck AFTER=${_deck.map((p) => p.id).toList()}',
     );
   }

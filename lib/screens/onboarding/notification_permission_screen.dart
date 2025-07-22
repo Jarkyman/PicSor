@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:flutter/scheduler.dart';
 import '../../core/theme.dart';
 
 class NotificationPermissionScreen extends StatefulWidget {
@@ -15,7 +14,6 @@ class NotificationPermissionScreen extends StatefulWidget {
 class _NotificationPermissionScreenState
     extends State<NotificationPermissionScreen>
     with WidgetsBindingObserver {
-  bool _requested = false;
   bool _granted = false;
 
   @override
@@ -50,12 +48,10 @@ class _NotificationPermissionScreenState
     if (!status.isGranted) {
       final req = await Permission.notification.request();
       setState(() {
-        _requested = true;
         _granted = req.isGranted;
       });
     } else {
       setState(() {
-        _requested = true;
         _granted = true;
       });
     }
@@ -64,7 +60,6 @@ class _NotificationPermissionScreenState
   Future<void> _requestPermission() async {
     final status = await Permission.notification.request();
     setState(() {
-      _requested = true;
       _granted = status.isGranted;
     });
   }
