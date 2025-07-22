@@ -23,12 +23,13 @@ class SwipeLogicService {
   List<PhotoModel> _assets = [];
 
   SwipeLogicService({
-    this.swipeCap = 600,
+    int? swipeCap,
     this.refillAmount = 125,
     this.refillHours = 5,
     this.deckSize = 5,
-    this.swipesLeft = 600,
-  });
+    int? swipesLeft,
+  }) : swipeCap = swipeCap ?? 50804,
+       swipesLeft = swipesLeft ?? 0;
 
   Future<void> loadState() async {
     swipeActions = await SwipeStorageService.loadSwipeActions();

@@ -18,13 +18,7 @@ import '../widgets/swipe_action_button_group.dart';
 import '../widgets/floating_live_label.dart';
 import 'dart:io';
 import 'dart:ui';
-
-class _AlbumInfo {
-  final String name;
-  final int count;
-  final Uint8List? thumb;
-  _AlbumInfo({required this.name, required this.count, this.thumb});
-}
+import '../models/album_info.dart';
 
 class SwipeScreen extends StatefulWidget {
   final SwipeLogicService swipeLogicService;
@@ -538,7 +532,7 @@ class _SwipeScreenState extends State<SwipeScreen>
                       ),
                       const Divider(),
                       Expanded(
-                        child: FutureBuilder<List<_AlbumInfo>>(
+                        child: FutureBuilder<List<AlbumInfo>>(
                           future: _fetchAlbumInfos(albums),
                           builder: (context, snap) {
                             if (!snap.hasData) {
@@ -861,8 +855,8 @@ class _SwipeScreenState extends State<SwipeScreen>
   }
 
   // Helper: fetch album info (name, count, thumb)
-  Future<List<_AlbumInfo>> _fetchAlbumInfos(List<String> albums) async {
-    final List<_AlbumInfo> infos = [];
+  Future<List<AlbumInfo>> _fetchAlbumInfos(List<String> albums) async {
+    final List<AlbumInfo> infos = [];
     for (final name in albums) {
       try {
         final paths = await PhotoManager.getAssetPathList(
@@ -889,12 +883,12 @@ class _SwipeScreenState extends State<SwipeScreen>
                     const ThumbnailSize(80, 80),
                   )
                   : null;
-          infos.add(_AlbumInfo(name: name, count: await count, thumb: thumb));
+          infos.add(AlbumInfo(name: name, count: await count, thumb: thumb));
         } else {
-          infos.add(_AlbumInfo(name: name, count: 0, thumb: null));
+          infos.add(AlbumInfo(name: name, count: 0, thumb: null));
         }
       } catch (_) {
-        infos.add(_AlbumInfo(name: name, count: 0, thumb: null));
+        infos.add(AlbumInfo(name: name, count: 0, thumb: null));
       }
     }
     return infos;
