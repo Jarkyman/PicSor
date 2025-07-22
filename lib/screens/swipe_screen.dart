@@ -1131,7 +1131,7 @@ class _SwipeScreenState extends State<SwipeScreen>
               fit: StackFit.expand,
               children: [
                 // a. Background layer
-                Container(color: Theme.of(context).colorScheme.background),
+                Container(color: Theme.of(context).colorScheme.surface),
                 // b. Swipe card deck
                 Center(
                   child: LayoutBuilder(

@@ -43,9 +43,7 @@ class SwipeCard extends StatelessWidget {
             img,
             Container(
               decoration: BoxDecoration(
-                color: Theme.of(
-                  context,
-                ).colorScheme.background.withOpacity(0.9),
+                color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
                 borderRadius: borderRadius,
               ),
             ),
