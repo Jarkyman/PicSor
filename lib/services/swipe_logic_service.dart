@@ -28,7 +28,7 @@ class SwipeLogicService {
     this.refillHours = 5,
     this.deckSize = 5,
     int? swipesLeft,
-  }) : swipeCap = swipeCap ?? 0,
+  }) : swipeCap = swipeCap ?? 50804,
        swipesLeft = swipesLeft ?? 0;
 
   Future<void> loadState() async {
