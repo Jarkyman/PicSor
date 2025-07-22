@@ -73,7 +73,19 @@ class _PhotoPermissionScreenState extends State<PhotoPermissionScreen> {
                   textAlign: TextAlign.center,
                 ),
                 SizedBox(height: AppSpacing.xl + AppSpacing.md),
-                if (!_granted && _requested)
+                if (!_granted && !_requested)
+                  Column(
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(height: AppSpacing.lg),
+                      Text(
+                        'Checking photo access...',
+                        style: AppTextStyles.body(context),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  )
+                else if (!_granted && _requested)
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
