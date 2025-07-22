@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
+import '../core/theme.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -93,47 +94,58 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(
+        title: Text('Settings', style: AppTextStyles.title(context)),
+      ),
       body: ListView(
         children: [
           SwitchListTile(
             value: _notificationsEnabled,
             onChanged: _setNotifications,
-            title: const Text('Notifications'),
-            secondary: const Icon(Icons.notifications_active),
+            title: Text('Notifications', style: AppTextStyles.label(context)),
+            secondary: Icon(
+              Icons.notifications_active,
+              size: Scale.of(context, 24),
+            ),
           ),
           ListTile(
-            leading: const Icon(Icons.brightness_6),
-            title: const Text('Theme'),
+            leading: Icon(Icons.brightness_6, size: Scale.of(context, 24)),
+            title: Text('Theme', style: AppTextStyles.label(context)),
             trailing: DropdownButton<ThemeMode>(
               value: _themeMode,
               onChanged: (mode) {
                 if (mode != null) _setThemeMode(mode);
               },
-              items: const [
+              items: [
                 DropdownMenuItem(
                   value: ThemeMode.system,
-                  child: Text('System'),
+                  child: Text('System', style: AppTextStyles.body(context)),
                 ),
-                DropdownMenuItem(value: ThemeMode.light, child: Text('Light')),
-                DropdownMenuItem(value: ThemeMode.dark, child: Text('Dark')),
+                DropdownMenuItem(
+                  value: ThemeMode.light,
+                  child: Text('Light', style: AppTextStyles.body(context)),
+                ),
+                DropdownMenuItem(
+                  value: ThemeMode.dark,
+                  child: Text('Dark', style: AppTextStyles.body(context)),
+                ),
               ],
             ),
           ),
           const Divider(),
           ListTile(
-            leading: const Icon(Icons.star_rate),
-            title: const Text('Rate the app'),
+            leading: Icon(Icons.star_rate, size: Scale.of(context, 24)),
+            title: Text('Rate the app', style: AppTextStyles.label(context)),
             onTap: _rateApp,
           ),
           ListTile(
-            leading: const Icon(Icons.share),
-            title: const Text('Share PicSor'),
+            leading: Icon(Icons.share, size: Scale.of(context, 24)),
+            title: Text('Share PicSor', style: AppTextStyles.label(context)),
             onTap: _shareApp,
           ),
           ListTile(
-            leading: const Icon(Icons.privacy_tip),
-            title: const Text('Privacy Policy'),
+            leading: Icon(Icons.privacy_tip, size: Scale.of(context, 24)),
+            title: Text('Privacy Policy', style: AppTextStyles.label(context)),
             onTap: _openPrivacyPolicy,
           ),
         ],

@@ -3,6 +3,7 @@ import '../models/photo_action.dart';
 import 'dart:typed_data';
 import 'package:photo_manager/photo_manager.dart';
 import '../models/photo_model.dart';
+import '../core/theme.dart';
 
 class SortLaterScreen extends StatefulWidget {
   final List<PhotoAction> actions;
@@ -45,8 +46,11 @@ class _SortLaterScreenState extends State<SortLaterScreen> {
     if (selectedPhotos.isNotEmpty) {
       Navigator.pop(context, selectedPhotos);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Returned to swipe queue'),
+        SnackBar(
+          content: Text(
+            'Returned to swipe queue',
+            style: AppTextStyles.body(context),
+          ),
           duration: Duration(seconds: 1),
         ),
       );
@@ -57,18 +61,24 @@ class _SortLaterScreenState extends State<SortLaterScreen> {
   Widget build(BuildContext context) {
     if (_sortLaterActions.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Sort Later')),
-        body: const Center(child: Text('Nothing here yet')),
+        appBar: AppBar(
+          title: Text('Sort Later', style: AppTextStyles.title(context)),
+        ),
+        body: Center(
+          child: Text('Nothing here yet', style: AppTextStyles.body(context)),
+        ),
       );
     }
     return Scaffold(
-      appBar: AppBar(title: const Text('Sort Later')),
+      appBar: AppBar(
+        title: Text('Sort Later', style: AppTextStyles.title(context)),
+      ),
       body: GridView.builder(
-        padding: const EdgeInsets.all(8),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        padding: EdgeInsets.all(AppSpacing.sm),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3,
-          crossAxisSpacing: 8,
-          mainAxisSpacing: 8,
+          crossAxisSpacing: AppSpacing.sm,
+          mainAxisSpacing: AppSpacing.sm,
         ),
         itemCount: _sortLaterActions.length,
         itemBuilder: (context, index) {
@@ -92,10 +102,10 @@ class _SortLaterScreenState extends State<SortLaterScreen> {
                     if (selected)
                       Container(
                         color: Colors.black.withOpacity(0.3),
-                        child: const Icon(
+                        child: Icon(
                           Icons.check_circle,
-                          color: Colors.blue,
-                          size: 32,
+                          color: AppColors.primary,
+                          size: Scale.of(context, 32),
                         ),
                       ),
                   ],
@@ -109,8 +119,8 @@ class _SortLaterScreenState extends State<SortLaterScreen> {
           _selectedIds.isNotEmpty
               ? FloatingActionButton.extended(
                 onPressed: _returnSelected,
-                icon: const Icon(Icons.keyboard_return),
-                label: const Text('Return Selected to Swipe Queue'),
+                icon: Icon(Icons.keyboard_return, size: Scale.of(context, 24)),
+                label: Text('Return Selected to Swipe Queue'),
               )
               : null,
     );
