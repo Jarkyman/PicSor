@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/theme.dart';
 
 class WelcomeScreen extends StatelessWidget {
   final VoidCallback onContinue;
@@ -10,57 +11,63 @@ class WelcomeScreen extends StatelessWidget {
       body: SafeArea(
         child: Center(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                SizedBox(height: AppSpacing.xl + AppSpacing.lg),
                 // Logo placeholder
                 Container(
-                  width: 100,
-                  height: 100,
+                  width: Scale.of(context, 100),
+                  height: Scale.of(context, 100),
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(24),
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(AppSpacing.lg),
                   ),
-                  child: const Center(
+                  child: Center(
                     child: Icon(
                       Icons.photo_library_outlined,
-                      size: 56,
-                      color: Colors.grey,
+                      size: Scale.of(context, 56),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withOpacity(0.7),
                     ),
                   ),
                 ),
-                const SizedBox(height: 32),
+                SizedBox(height: AppSpacing.xl),
                 Text(
                   'Welcome to PicSor',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: AppTextStyles.headline(context),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 20),
-                const Text(
+                SizedBox(height: AppSpacing.lg),
+                Text(
                   'Sort and clean up your photos and videos with a swipe. PicSor helps you organize your gallery – fast, private, and offline.\n\nSwipe right to keep, left to delete, and up to sort for later. No cloud, no account, just you and your photos.',
-                  style: TextStyle(fontSize: 16),
+                  style: AppTextStyles.body(context),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 40),
+                SizedBox(height: AppSpacing.xl + AppSpacing.md),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: onContinue,
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: EdgeInsets.symmetric(
+                        vertical: Scale.of(context, 16),
+                      ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.buttonRadius,
+                        ),
                       ),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Get started',
-                      style: TextStyle(fontSize: 18),
+                      style: AppTextStyles.button(context),
                     ),
                   ),
                 ),
+                SizedBox(height: AppSpacing.lg),
               ],
             ),
           ),

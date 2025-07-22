@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/scheduler.dart';
+import '../../core/theme.dart';
 
 class NotificationPermissionScreen extends StatefulWidget {
   final VoidCallback onNext;
@@ -53,7 +54,6 @@ class _NotificationPermissionScreenState
         _requested = true;
         _granted = req.isGranted;
       });
-      // Fjern automatisk navigation her
     } else {
       setState(() {
         _requested = true;
@@ -68,7 +68,6 @@ class _NotificationPermissionScreenState
       _requested = true;
       _granted = status.isGranted;
     });
-    // Fjern automatisk navigation her
   }
 
   @override
@@ -77,41 +76,41 @@ class _NotificationPermissionScreenState
       body: SafeArea(
         child: Center(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Notifikation-ikon
+                SizedBox(height: AppSpacing.xl + AppSpacing.lg),
                 Container(
-                  width: 100,
-                  height: 100,
+                  width: Scale.of(context, 100),
+                  height: Scale.of(context, 100),
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(24),
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(AppSpacing.lg),
                   ),
-                  child: const Center(
+                  child: Center(
                     child: Icon(
                       Icons.notifications_active_outlined,
-                      size: 56,
-                      color: Colors.grey,
+                      size: Scale.of(context, 56),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withOpacity(0.7),
                     ),
                   ),
                 ),
-                const SizedBox(height: 32),
+                SizedBox(height: AppSpacing.xl),
                 Text(
                   'Enable Notifications',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: AppTextStyles.headline(context),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 20),
-                const Text(
+                SizedBox(height: AppSpacing.lg),
+                Text(
                   'PicSor can remind you when you have new swipes available, or when it’s time to clean up your gallery.\n\nNotifications are optional and you can always change this later in settings.',
-                  style: TextStyle(fontSize: 16),
+                  style: AppTextStyles.body(context),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 40),
+                SizedBox(height: AppSpacing.xl + AppSpacing.md),
                 _granted
                     ? Row(
                       children: [
@@ -119,14 +118,18 @@ class _NotificationPermissionScreenState
                           child: ElevatedButton(
                             onPressed: widget.onNext,
                             style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              padding: EdgeInsets.symmetric(
+                                vertical: Scale.of(context, 16),
+                              ),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
+                                borderRadius: BorderRadius.circular(
+                                  AppSpacing.buttonRadius,
+                                ),
                               ),
                             ),
-                            child: const Text(
+                            child: Text(
                               'Next',
-                              style: TextStyle(fontSize: 18),
+                              style: AppTextStyles.button(context),
                             ),
                           ),
                         ),
@@ -140,55 +143,62 @@ class _NotificationPermissionScreenState
                               final status =
                                   await Permission.notification.status;
                               if (status.isDenied) {
-                                // Try again
                                 await _requestPermission();
                               } else {
-                                // Open settings
                                 await openAppSettings();
                               }
                             },
                             style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              padding: EdgeInsets.symmetric(
+                                vertical: Scale.of(context, 16),
+                              ),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
+                                borderRadius: BorderRadius.circular(
+                                  AppSpacing.buttonRadius,
+                                ),
                               ),
                             ),
                             child: FutureBuilder<PermissionStatus>(
                               future: Permission.notification.status,
                               builder: (context, snap) {
                                 if (snap.hasData && snap.data!.isDenied) {
-                                  return const Text(
+                                  return Text(
                                     'Try again',
-                                    style: TextStyle(fontSize: 18),
+                                    style: AppTextStyles.button(context),
                                   );
                                 } else {
-                                  return const Text(
+                                  return Text(
                                     'Go to settings',
-                                    style: TextStyle(fontSize: 18),
+                                    style: AppTextStyles.button(context),
                                   );
                                 }
                               },
                             ),
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        SizedBox(width: AppSpacing.lg),
                         Expanded(
                           child: OutlinedButton(
                             onPressed: widget.onNext,
                             style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              padding: EdgeInsets.symmetric(
+                                vertical: Scale.of(context, 16),
+                              ),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
+                                borderRadius: BorderRadius.circular(
+                                  AppSpacing.buttonRadius,
+                                ),
                               ),
                             ),
-                            child: const Text(
+                            child: Text(
                               'Skip',
-                              style: TextStyle(fontSize: 18),
+                              style: AppTextStyles.button(context),
                             ),
                           ),
                         ),
                       ],
                     ),
+                SizedBox(height: AppSpacing.lg),
               ],
             ),
           ),
