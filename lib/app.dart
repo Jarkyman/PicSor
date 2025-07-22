@@ -5,6 +5,7 @@ import 'screens/sort_later_screen.dart';
 import 'core/app_routes.dart';
 import 'models/photo_action.dart';
 import 'screens/splash_screen.dart';
+import 'core/theme.dart';
 
 class StatsScreen extends StatelessWidget {
   const StatsScreen({super.key});
@@ -31,8 +32,8 @@ class PicSorApp extends StatelessWidget {
   Widget build(BuildContext context) => MaterialApp(
     title: 'PicSor',
     themeMode: ThemeMode.system,
-    theme: ThemeData.light(),
-    darkTheme: ThemeData.dark(),
+    theme: appTheme,
+    darkTheme: appDarkTheme,
     home: const SplashScreen(),
     routes: {
       // Do not include '/' route since home is set
