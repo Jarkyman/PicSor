@@ -568,9 +568,9 @@ class _SwipeScreenState extends State<SwipeScreen>
                                     Expanded(
                                       child: Material(
                                         color:
-                                            Theme.of(
-                                              context,
-                                            ).colorScheme.surfaceVariant,
+                                            Theme.of(context)
+                                                .colorScheme
+                                                .surfaceContainerHighest,
                                         borderRadius: BorderRadius.circular(
                                           AppSpacing.md,
                                         ),
@@ -747,7 +747,7 @@ class _SwipeScreenState extends State<SwipeScreen>
                                 color:
                                     Theme.of(
                                       context,
-                                    ).colorScheme.surfaceVariant,
+                                    ).colorScheme.surfaceContainerHighest,
                                 borderRadius: BorderRadius.circular(
                                   AppSpacing.md,
                                 ),
@@ -901,7 +901,7 @@ class _SwipeScreenState extends State<SwipeScreen>
                                 color:
                                     Theme.of(
                                       context,
-                                    ).colorScheme.surfaceVariant,
+                                    ).colorScheme.surfaceContainerHighest,
                                 borderRadius: BorderRadius.circular(
                                   AppSpacing.md,
                                 ),
