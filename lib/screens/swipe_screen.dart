@@ -3,7 +3,6 @@ import 'package:photo_manager/photo_manager.dart';
 import '../models/photo_model.dart';
 import '../models/photo_action.dart';
 import '../core/app_routes.dart';
-import 'package:share_plus/share_plus.dart';
 import '../services/swipe_logic_service.dart';
 import '../services/photo_action_service.dart';
 import '../widgets/swipe_card.dart';
@@ -52,20 +51,20 @@ class _SwipeScreenState extends State<SwipeScreen>
       duration: const Duration(milliseconds: 300),
     );
     _swipeController.addStatusListener((status) {
-      print(
+      debugPrint(
         'SWIPE ANIMATION STATUS: $status, _isAnimatingOut=$_isAnimatingOut, _pendingSwipe=$_pendingSwipe',
       );
       if (status == AnimationStatus.completed && _isAnimatingOut) {
-        print(
+        debugPrint(
           'SWIPE ANIMATION COMPLETED: _isAnimatingOut=$_isAnimatingOut, _pendingSwipe=$_pendingSwipe',
         );
         if (_pendingSwipe != null) {
-          print(
+          debugPrint(
             'SWIPE ANIMATION COMPLETED: calling handleDeckSwipe(${_pendingSwipe!})',
           );
           setState(() {
             _swipeLogicService.handleDeckSwipe(_pendingSwipe!);
-            print(
+            debugPrint(
               'SWIPE ANIMATION COMPLETED: handleDeckSwipe done, resetting _isAnimatingOut and _pendingSwipe',
             );
             _isAnimatingOut = false;
@@ -130,7 +129,7 @@ class _SwipeScreenState extends State<SwipeScreen>
   }
 
   void _triggerDeckSwipe(PhotoActionType type) {
-    print(
+    debugPrint(
       'CALL: _triggerDeckSwipe($type), _isAnimatingOut=$_isAnimatingOut, deckEmpty=${_swipeLogicService.deck.isEmpty}, _pendingSwipe=$_pendingSwipe',
     );
     if (_isAnimatingOut || _swipeLogicService.deck.isEmpty) return;
@@ -156,7 +155,9 @@ class _SwipeScreenState extends State<SwipeScreen>
         CurvedAnimation(parent: _swipeController, curve: Curves.easeOut),
       );
     });
-    print('CALL: _swipeController.forward(from: 0) from _triggerDeckSwipe');
+    debugPrint(
+      'CALL: _swipeController.forward(from: 0) from _triggerDeckSwipe',
+    );
     _swipeController.forward(from: 0);
   }
 
@@ -207,7 +208,9 @@ class _SwipeScreenState extends State<SwipeScreen>
       }
     }
     if (type != null) {
-      print('Gesture: _handleDeckPanEnd triggers _triggerDeckSwipe($type)');
+      debugPrint(
+        'Gesture: _handleDeckPanEnd triggers _triggerDeckSwipe($type)',
+      );
       setState(() {
         _isDragging = false;
         _swipeEndOffset = endOffset;
@@ -856,7 +859,9 @@ class _SwipeScreenState extends State<SwipeScreen>
 
   @override
   Widget build(BuildContext context) {
-    print('BUILD: deck=${_swipeLogicService.deck.map((p) => p.id).toList()}');
+    debugPrint(
+      'BUILD: deck=${_swipeLogicService.deck.map((p) => p.id).toList()}',
+    );
     if (_swipeLogicService.deck.isNotEmpty) {
       final top = _swipeLogicService.topCard!;
     }
@@ -1059,7 +1064,9 @@ class _SwipeScreenState extends State<SwipeScreen>
                                         _swipeLogicService.canSwipe() &&
                                                 !_isAnimatingOut
                                             ? (details) {
-                                              print('Gesture: onPanUpdate');
+                                              debugPrint(
+                                                'Gesture: onPanUpdate',
+                                              );
                                               _handleCardPanUpdate(details);
                                             }
                                             : null,
@@ -1067,7 +1074,7 @@ class _SwipeScreenState extends State<SwipeScreen>
                                         _swipeLogicService.canSwipe() &&
                                                 !_isAnimatingOut
                                             ? (details) {
-                                              print('Gesture: onPanEnd');
+                                              debugPrint('Gesture: onPanEnd');
                                               _handleCardPanEnd(details);
                                             }
                                             : null,
