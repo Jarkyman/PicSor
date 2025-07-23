@@ -77,8 +77,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _shareApp() {
-    Share.share(
-      'Check out PicSor! Download it here: https://apps.apple.com/app/idYOUR_APP_ID',
+    SharePlus.instance.share(
+      ShareParams(
+        text:
+            'Check out PicSor! Download it here: https://apps.apple.com/app/idYOUR_APP_ID',
+      ),
     ); // Replace with your app link
   }
 
