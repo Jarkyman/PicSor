@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:photo_manager/photo_manager.dart';
 import '../services/gallery_service.dart';
 import '../models/photo_action.dart';
 import '../models/photo_model.dart';
-import 'dart:typed_data';
 import '../core/theme.dart';
 
 class StatsScreen extends StatefulWidget {
