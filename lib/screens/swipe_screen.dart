@@ -666,49 +666,9 @@ class _SwipeScreenState extends State<SwipeScreen>
                                     );
                                     if (albumName != null &&
                                         albumName.isNotEmpty) {
-                                      final created =
-                                          await PhotoActionService.createAlbum(
-                                            albumName,
-                                          );
-                                      if (created) {
-                                        // Opdater listen og tilføj billedet til det nye album
-                                        final ok =
-                                            await PhotoActionService.addToAlbum(
-                                              photo,
-                                              albumName,
-                                            );
-                                        if (!ok) {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                'Failed to add to new album.',
-                                                style: AppTextStyles.body(
-                                                  context,
-                                                ),
-                                              ),
-                                            ),
-                                          );
-                                        } else {
-                                          Navigator.of(context).pop(
-                                            albumName,
-                                          ); // luk popup og vælg albummet
-                                        }
-                                      } else {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              'Could not create album.',
-                                              style: AppTextStyles.body(
-                                                context,
-                                              ),
-                                            ),
-                                          ),
-                                        );
-                                      }
+                                      Navigator.of(
+                                        context,
+                                      ).pop('CREATE_ALBUM:$albumName');
                                     }
                                   },
                                   child: SizedBox(
@@ -797,16 +757,46 @@ class _SwipeScreenState extends State<SwipeScreen>
       },
     );
     if (selected != null) {
-      final ok = await PhotoActionService.addToAlbum(photo, selected);
-      if (!ok) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Failed to add to album.',
-              style: AppTextStyles.body(context),
+      if (selected.startsWith('CREATE_ALBUM:')) {
+        final albumName = selected.substring('CREATE_ALBUM:'.length);
+        final created = await PhotoActionService.createAlbum(albumName);
+        if (!created) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Could not create album.',
+                style: AppTextStyles.body(context),
+              ),
             ),
-          ),
-        );
+          );
+          return;
+        }
+        final ok = await PhotoActionService.addToAlbum(photo, albumName);
+        if (!ok) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Failed to add to new album.',
+                style: AppTextStyles.body(context),
+              ),
+            ),
+          );
+        }
+      } else {
+        final ok = await PhotoActionService.addToAlbum(photo, selected);
+        if (!ok) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Failed to add to album.',
+                style: AppTextStyles.body(context),
+              ),
+            ),
+          );
+        }
       }
     }
   }
