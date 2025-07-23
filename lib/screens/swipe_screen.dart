@@ -1,21 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
-import '../services/gallery_service.dart';
 import '../models/photo_model.dart';
 import '../models/photo_action.dart';
-import 'dart:typed_data';
-import '../app.dart';
 import '../core/app_routes.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'dart:convert';
 import 'package:share_plus/share_plus.dart';
 import '../services/swipe_logic_service.dart';
-import '../services/swipe_storage_service.dart';
 import '../services/photo_action_service.dart';
 import '../widgets/swipe_card.dart';
 import '../widgets/swipe_action_button_group.dart';
-import '../widgets/floating_live_label.dart';
 import 'dart:io';
 import 'dart:ui';
 import '../models/album_info.dart';
@@ -26,10 +18,10 @@ class SwipeScreen extends StatefulWidget {
   final List<PhotoModel> assets;
 
   const SwipeScreen({
-    Key? key,
+    super.key,
     required this.swipeLogicService,
     required this.assets,
-  }) : super(key: key);
+  });
 
   @override
   State<SwipeScreen> createState() => _SwipeScreenState();
@@ -137,35 +129,6 @@ class _SwipeScreenState extends State<SwipeScreen>
     );
   }
 
-  void _onDeckSwipe(PhotoActionType type) {
-    print(
-      'CALL: _onDeckSwipe($type), _isAnimatingOut=$_isAnimatingOut, _pendingSwipe=$_pendingSwipe',
-    );
-    // No longer update deck here; handled in animation completed listener
-    setState(() {
-      _isAnimatingOut = true;
-      _pendingSwipe = type;
-    });
-    Offset endOffset;
-    switch (type) {
-      case PhotoActionType.delete:
-        endOffset = const Offset(-2, 0);
-        break;
-      case PhotoActionType.keep:
-        endOffset = const Offset(2, 0);
-        break;
-      case PhotoActionType.sortLater:
-        endOffset = const Offset(0, -2);
-        break;
-    }
-    _swipeAnimation = Tween<Offset>(
-      begin: Offset.zero,
-      end: endOffset,
-    ).animate(CurvedAnimation(parent: _swipeController, curve: Curves.easeOut));
-    print('CALL: _swipeController.forward(from: 0) from _onDeckSwipe');
-    _swipeController.forward(from: 0);
-  }
-
   void _triggerDeckSwipe(PhotoActionType type) {
     print(
       'CALL: _triggerDeckSwipe($type), _isAnimatingOut=$_isAnimatingOut, deckEmpty=${_swipeLogicService.deck.isEmpty}, _pendingSwipe=$_pendingSwipe',
@@ -195,95 +158,6 @@ class _SwipeScreenState extends State<SwipeScreen>
     });
     print('CALL: _swipeController.forward(from: 0) from _triggerDeckSwipe');
     _swipeController.forward(from: 0);
-  }
-
-  void _handleDeckPanEnd(DragEndDetails details) {
-    if (_isAnimatingOut || _swipeLogicService.deck.isEmpty) return;
-    final velocity = details.velocity.pixelsPerSecond;
-    if (velocity.dx.abs() > velocity.dy.abs()) {
-      if (velocity.dx < -500) {
-        _triggerDeckSwipe(PhotoActionType.delete);
-      } else if (velocity.dx > 500) {
-        _triggerDeckSwipe(PhotoActionType.keep);
-      }
-    } else {
-      if (velocity.dy < -500) {
-        _triggerDeckSwipe(PhotoActionType.sortLater);
-      }
-    }
-  }
-
-  void _navigateToSortLater() async {
-    final sortLater =
-        _swipeLogicService.completedActions
-            .where((a) => a.action == PhotoActionType.sortLater)
-            .toList();
-    final result = await Navigator.pushNamed(
-      context,
-      AppRoutes.sortLater,
-      arguments: _swipeLogicService.getActionsForType(
-        widget.assets,
-        'sort_later',
-      ),
-    );
-    if (result is List<PhotoModel> && result.isNotEmpty) {
-      setState(() {
-        widget.assets.insertAll(_swipeLogicService.deckStartIndex, result);
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Returned ${result.length} photo(s) to swipe queue',
-            style: AppTextStyles.body(context),
-          ),
-          duration: const Duration(seconds: 1),
-        ),
-      );
-    }
-  }
-
-  Future<Widget> _buildPhotoWidget(PhotoModel photo) async {
-    final isLocal = await photo.asset.isLocallyAvailable();
-    if (!isLocal) {
-      return Container(
-        color: Colors.black,
-        alignment: Alignment.center,
-        child: Text(
-          'Media not downloaded\n(Open Photos app to download)',
-          style: AppTextStyles.body(context).copyWith(color: Colors.white),
-          textAlign: TextAlign.center,
-        ),
-      );
-    }
-    final thumb = await photo.asset.thumbnailDataWithSize(
-      const ThumbnailSize(400, 400),
-    );
-    if (thumb != null && thumb.isNotEmpty) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-        child: Image.memory(thumb, fit: BoxFit.cover),
-      );
-    }
-    // Try loading the original file as fallback
-    final file = await photo.asset.file;
-    if (file != null) {
-      final bytes = await file.readAsBytes();
-      if (bytes.isNotEmpty) {
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-          child: Image.memory(bytes, fit: BoxFit.cover),
-        );
-      }
-    }
-    return Container(
-      color: Colors.black,
-      alignment: Alignment.center,
-      child: Icon(
-        Icons.broken_image,
-        color: Colors.white,
-        size: Scale.of(context, 80),
-      ),
-    );
   }
 
   void _handleCardPanUpdate(DragUpdateDetails details) {
@@ -364,18 +238,21 @@ class _SwipeScreenState extends State<SwipeScreen>
     if (!_isDragging) return null;
     if (offset.dx > 20 && offset.dx.abs() > offset.dy.abs()) return 'Keep';
     if (offset.dx < -20 && offset.dx.abs() > offset.dy.abs()) return 'Delete';
-    if (offset.dy < -20 && offset.dy.abs() > offset.dx.abs())
+    if (offset.dy < -20 && offset.dy.abs() > offset.dx.abs()) {
       return 'Sort later';
+    }
     return null;
   }
 
   Color? _getLiveLabelColor(Offset offset) {
     if (!_isDragging) return null;
-    if (offset.dx > 20 && offset.dx.abs() > offset.dy.abs())
+    if (offset.dx > 20 && offset.dx.abs() > offset.dy.abs()) {
       return Colors.green;
+    }
     if (offset.dx < -20 && offset.dx.abs() > offset.dy.abs()) return Colors.red;
-    if (offset.dy < -20 && offset.dy.abs() > offset.dx.abs())
+    if (offset.dy < -20 && offset.dy.abs() > offset.dx.abs()) {
       return Colors.purple;
+    }
     return null;
   }
 
@@ -384,32 +261,6 @@ class _SwipeScreenState extends State<SwipeScreen>
     if (offset.dx.abs() > 20 && offset.dx.abs() > offset.dy.abs()) return true;
     if (offset.dy < -20 && offset.dy.abs() > offset.dx.abs()) return true;
     return false;
-  }
-
-  List<PhotoAction> get _deletedActions {
-    return widget.assets
-        .where(
-          (a) => _swipeLogicService.completedActions.any(
-            (action) =>
-                action.photo.id == a.id &&
-                action.action == PhotoActionType.delete,
-          ),
-        )
-        .map((a) => PhotoAction(photo: a, action: PhotoActionType.delete))
-        .toList();
-  }
-
-  List<PhotoAction> get _sortLaterActions {
-    return widget.assets
-        .where(
-          (a) => _swipeLogicService.completedActions.any(
-            (action) =>
-                action.photo.id == a.id &&
-                action.action == PhotoActionType.sortLater,
-          ),
-        )
-        .map((a) => PhotoAction(photo: a, action: PhotoActionType.sortLater))
-        .toList();
   }
 
   Future<bool> _isFavorite(PhotoModel photo) async {
@@ -559,7 +410,7 @@ class _SwipeScreenState extends State<SwipeScreen>
                               padding: EdgeInsets.only(bottom: AppSpacing.lg),
                               itemCount: albumInfos.length,
                               separatorBuilder:
-                                  (_, __) => SizedBox(height: AppSpacing.lg),
+                                  (_, _) => SizedBox(height: AppSpacing.lg),
                               itemBuilder: (context, i) {
                                 final info = albumInfos[i];
                                 return Row(
@@ -1003,13 +854,6 @@ class _SwipeScreenState extends State<SwipeScreen>
     await _showAlbumPicker(photo);
   }
 
-  Future<void> _sharePhoto(PhotoModel photo) async {
-    final file = await photo.asset.file;
-    if (file != null) {
-      await Share.shareXFiles([XFile(file.path)]);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     print('BUILD: deck=${_swipeLogicService.deck.map((p) => p.id).toList()}');
@@ -1264,7 +1108,9 @@ class _SwipeScreenState extends State<SwipeScreen>
                           onAddToAlbum:
                               () => _addToAlbum(_swipeLogicService.topCard!),
                           onShare:
-                              () => _sharePhoto(_swipeLogicService.topCard!),
+                              () => PhotoActionService.sharePhoto(
+                                _swipeLogicService.topCard!,
+                              ),
                         );
                       },
                     ),
