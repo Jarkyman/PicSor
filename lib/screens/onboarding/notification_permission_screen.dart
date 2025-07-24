@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../core/theme.dart';
+import '../../widgets/onboarding/onboarding_icon.dart';
+import '../../widgets/onboarding/onboarding_title.dart';
+import '../../widgets/onboarding/onboarding_body.dart';
+import '../../widgets/onboarding/onboarding_button_row.dart';
 
 class NotificationPermissionScreen extends StatefulWidget {
   final VoidCallback onNext;
@@ -71,129 +75,133 @@ class _NotificationPermissionScreenState
         child: Center(
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(height: AppSpacing.xl + AppSpacing.lg),
-                Container(
-                  width: Scale.of(context, 100),
-                  height: Scale.of(context, 100),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    borderRadius: BorderRadius.circular(AppSpacing.lg),
-                  ),
-                  child: Center(
-                    child: Icon(
-                      Icons.notifications_active_outlined,
-                      size: Scale.of(context, 56),
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.primary.withValues(alpha: 0.7),
+            child: LayoutBuilder(
+              builder:
+                  (context, constraints) => ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(height: AppSpacing.xl + AppSpacing.lg),
+                        OnboardingIcon(
+                          icon: Icons.notifications_active_outlined,
+                        ),
+                        SizedBox(height: AppSpacing.xl),
+                        OnboardingTitle(text: 'Enable Notifications'),
+                        SizedBox(height: AppSpacing.lg),
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.topCenter,
+                            child: OnboardingBody(
+                              text:
+                                  'PicSor can remind you when you have new swipes available, or when it\u2019s time to clean up your gallery.\n\nNotifications are optional and you can always change this later in settings.',
+                            ),
+                          ),
+                        ),
+                        _granted
+                            ? Column(
+                              children: [
+                                SizedBox(height: AppSpacing.lg),
+                                OnboardingButtonRow(
+                                  buttons: [
+                                    ElevatedButton(
+                                      onPressed: widget.onNext,
+                                      style: ElevatedButton.styleFrom(
+                                        padding: EdgeInsets.symmetric(
+                                          vertical: Scale.of(context, 16),
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            AppSpacing.buttonRadius,
+                                          ),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        'Next',
+                                        style: AppTextStyles.button(context),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: AppSpacing.lg),
+                              ],
+                            )
+                            : Column(
+                              children: [
+                                SizedBox(height: AppSpacing.lg),
+                                OnboardingButtonRow(
+                                  buttons: [
+                                    ElevatedButton(
+                                      onPressed: () async {
+                                        final status =
+                                            await Permission
+                                                .notification
+                                                .status;
+                                        if (status.isDenied) {
+                                          await _requestPermission();
+                                        } else {
+                                          await openAppSettings();
+                                        }
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        padding: EdgeInsets.symmetric(
+                                          vertical: Scale.of(context, 16),
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            AppSpacing.buttonRadius,
+                                          ),
+                                        ),
+                                      ),
+                                      child: FutureBuilder<PermissionStatus>(
+                                        future: Permission.notification.status,
+                                        builder: (context, snap) {
+                                          if (snap.hasData &&
+                                              snap.data!.isDenied) {
+                                            return Text(
+                                              'Try again',
+                                              style: AppTextStyles.button(
+                                                context,
+                                              ),
+                                            );
+                                          } else {
+                                            return Text(
+                                              'Go to settings',
+                                              style: AppTextStyles.button(
+                                                context,
+                                              ),
+                                            );
+                                          }
+                                        },
+                                      ),
+                                    ),
+                                    OutlinedButton(
+                                      onPressed: widget.onNext,
+                                      style: OutlinedButton.styleFrom(
+                                        padding: EdgeInsets.symmetric(
+                                          vertical: Scale.of(context, 16),
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            AppSpacing.buttonRadius,
+                                          ),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        'Skip',
+                                        style: AppTextStyles.button(context),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: AppSpacing.lg),
+                              ],
+                            ),
+                      ],
                     ),
                   ),
-                ),
-                SizedBox(height: AppSpacing.xl),
-                Text(
-                  'Enable Notifications',
-                  style: AppTextStyles.headline(context),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: AppSpacing.lg),
-                Text(
-                  'PicSor can remind you when you have new swipes available, or when it’s time to clean up your gallery.\n\nNotifications are optional and you can always change this later in settings.',
-                  style: AppTextStyles.body(context),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: AppSpacing.xl + AppSpacing.md),
-                _granted
-                    ? Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: widget.onNext,
-                            style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.symmetric(
-                                vertical: Scale.of(context, 16),
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                  AppSpacing.buttonRadius,
-                                ),
-                              ),
-                            ),
-                            child: Text(
-                              'Next',
-                              style: AppTextStyles.button(context),
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                    : Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              final status =
-                                  await Permission.notification.status;
-                              if (status.isDenied) {
-                                await _requestPermission();
-                              } else {
-                                await openAppSettings();
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.symmetric(
-                                vertical: Scale.of(context, 16),
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                  AppSpacing.buttonRadius,
-                                ),
-                              ),
-                            ),
-                            child: FutureBuilder<PermissionStatus>(
-                              future: Permission.notification.status,
-                              builder: (context, snap) {
-                                if (snap.hasData && snap.data!.isDenied) {
-                                  return Text(
-                                    'Try again',
-                                    style: AppTextStyles.button(context),
-                                  );
-                                } else {
-                                  return Text(
-                                    'Go to settings',
-                                    style: AppTextStyles.button(context),
-                                  );
-                                }
-                              },
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: AppSpacing.lg),
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: widget.onNext,
-                            style: OutlinedButton.styleFrom(
-                              padding: EdgeInsets.symmetric(
-                                vertical: Scale.of(context, 16),
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                  AppSpacing.buttonRadius,
-                                ),
-                              ),
-                            ),
-                            child: Text(
-                              'Skip',
-                              style: AppTextStyles.button(context),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                SizedBox(height: AppSpacing.lg),
-              ],
             ),
           ),
         ),
