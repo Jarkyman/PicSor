@@ -1,23 +1,31 @@
 import 'package:flutter/material.dart';
 import '../models/photo_model.dart';
 import '../core/theme.dart';
+import 'package:photo_manager/photo_manager.dart';
+import '../services/photo_action_service.dart';
+
+typedef FavoriteToggledCallback = void Function(PhotoModel updatedPhoto);
+typedef SnackBarCallback =
+    void Function(String message, {SnackBarAction? action});
 
 class SwipeActionButtonGroup extends StatelessWidget {
   final PhotoModel photo;
   final bool isFavorite;
-  final VoidCallback onFavorite;
+  final FavoriteToggledCallback onFavoriteToggled;
   final bool isInAlbum;
   final VoidCallback onAddToAlbum;
   final VoidCallback onShare;
+  final SnackBarCallback showSnackBar;
 
   const SwipeActionButtonGroup({
     super.key,
     required this.photo,
     required this.isFavorite,
-    required this.onFavorite,
+    required this.onFavoriteToggled,
     required this.isInAlbum,
     required this.onAddToAlbum,
     required this.onShare,
+    required this.showSnackBar,
   });
 
   @override
@@ -36,7 +44,47 @@ class SwipeActionButtonGroup extends StatelessWidget {
               color: isFavorite ? Colors.red : iconColor,
               size: Scale.of(context, 32),
             ),
-            onPressed: onFavorite,
+            onPressed: () async {
+              final success = await PhotoActionService.toggleFavorite(photo);
+              if (success) {
+                final updated = await AssetEntity.fromId(photo.id);
+                if (updated != null) {
+                  onFavoriteToggled(
+                    PhotoModel(
+                      id: photo.id,
+                      asset: updated,
+                      createdAt: photo.createdAt,
+                      isVideo: photo.isVideo,
+                      thumbnailData: photo.thumbnailData,
+                    ),
+                  );
+                } else {
+                  showSnackBar(
+                    'Favorite updated, but failed to refresh photo.',
+                  );
+                }
+              } else {
+                // Check permissions on iOS
+                if (Theme.of(context).platform == TargetPlatform.iOS) {
+                  final status = await PhotoManager.requestPermissionExtend();
+                  if (!status.isAuth) {
+                    showSnackBar(
+                      'Photo access denied. Please allow full access in Settings.',
+                      action: SnackBarAction(
+                        label: 'Settings',
+                        onPressed: () {
+                          PhotoManager.openSetting();
+                        },
+                      ),
+                    );
+                    return;
+                  }
+                }
+                showSnackBar(
+                  'Could not update favorite. Try again or check permissions.',
+                );
+              }
+            },
             tooltip: 'Favorite',
           ),
         ),

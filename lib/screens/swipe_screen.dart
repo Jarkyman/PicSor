@@ -12,6 +12,7 @@ import 'dart:io';
 import 'dart:ui';
 import '../widgets/dialogs.dart';
 import '../models/album_info.dart';
+import '../widgets/album_picker_dialog.dart';
 import '../core/theme.dart';
 
 class SwipeScreen extends StatefulWidget {
@@ -224,587 +225,8 @@ class _SwipeScreenState extends State<SwipeScreen>
     }
   }
 
-  Future<void> _toggleFavorite(PhotoModel photo) async {
-    final success = await PhotoActionService.toggleFavorite(photo);
-    if (success) {
-      final updated = await AssetEntity.fromId(photo.id);
-      if (updated != null) {
-        setState(() {
-          final idx = widget.assets.indexWhere((p) => p.id == photo.id);
-          if (idx != -1) {
-            widget.assets[idx] = PhotoModel(
-              id: photo.id,
-              asset: updated,
-              createdAt: photo.createdAt,
-              isVideo: photo.isVideo,
-              thumbnailData: photo.thumbnailData,
-            );
-          }
-          final deckIdx = _swipeLogicService.deck.indexWhere(
-            (p) => p.id == photo.id,
-          );
-          if (deckIdx != -1) {
-            _swipeLogicService.deck[deckIdx] = PhotoModel(
-              id: photo.id,
-              asset: updated,
-              createdAt: photo.createdAt,
-              isVideo: photo.isVideo,
-              thumbnailData: photo.thumbnailData,
-            );
-          }
-        });
-      } else {
-        setState(() {});
-      }
-    } else {
-      setState(() {});
-      // Check permissions on iOS
-      if (Platform.isIOS) {
-        final status = await PhotoManager.requestPermissionExtend();
-        if (!status.isAuth) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  'Photo access denied. Please allow full access in Settings.',
-                  style: AppTextStyles.body(context),
-                ),
-                action: SnackBarAction(
-                  label: 'Settings',
-                  onPressed: () {
-                    PhotoManager.openSetting();
-                  },
-                ),
-                duration: Duration(seconds: 4),
-              ),
-            );
-          }
-        } else {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  'Could not update favorite. Try again or check permissions.',
-                  style: AppTextStyles.body(context),
-                ),
-                duration: Duration(seconds: 2),
-              ),
-            );
-          }
-        }
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Could not update favorite. Try again or check permissions.',
-                style: AppTextStyles.body(context),
-              ),
-              duration: Duration(seconds: 2),
-            ),
-          );
-        }
-      }
-    }
-  }
-
-  Future<void> _showAlbumPicker(PhotoModel photo) async {
-    final albums = await PhotoActionService.getAlbums();
-    if (albums.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('No albums found.', style: AppTextStyles.body(context)),
-        ),
-      );
-      return;
-    }
-    final selected = await showDialog<String>(
-      context: context,
-      barrierColor: Colors.transparent,
-      barrierDismissible: true,
-      builder: (context) {
-        return Stack(
-          children: [
-            Positioned.fill(
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => Navigator.of(context).pop(),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                  child: Container(color: Colors.black.withValues(alpha: 0.25)),
-                ),
-              ),
-            ),
-            Center(
-              child: Dialog(
-                insetPadding: EdgeInsets.all(AppSpacing.lg),
-                child: SizedBox(
-                  width: Scale.of(context, 400),
-                  height: Scale.of(context, 500),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.all(AppSpacing.lg),
-                        child: Text(
-                          'Add to Album',
-                          style: AppTextStyles.title(context),
-                        ),
-                      ),
-                      const Divider(),
-                      Expanded(
-                        child: FutureBuilder<List<AlbumInfo>>(
-                          future: _fetchAlbumInfos(albums),
-                          builder: (context, snap) {
-                            if (!snap.hasData) {
-                              return const Center(
-                                child: CircularProgressIndicator(),
-                              );
-                            }
-                            final albumInfos = snap.data!;
-                            return ListView.separated(
-                              padding: EdgeInsets.only(bottom: AppSpacing.lg),
-                              itemCount: albumInfos.length,
-                              separatorBuilder:
-                                  (_, _) => SizedBox(height: AppSpacing.lg),
-                              itemBuilder: (context, i) {
-                                final info = albumInfos[i];
-                                return Row(
-                                  children: [
-                                    SizedBox(width: AppSpacing.lg),
-                                    Expanded(
-                                      child: Material(
-                                        color:
-                                            Theme.of(context)
-                                                .colorScheme
-                                                .surfaceContainerHighest,
-                                        borderRadius: BorderRadius.circular(
-                                          AppSpacing.md,
-                                        ),
-                                        child: InkWell(
-                                          borderRadius: BorderRadius.circular(
-                                            AppSpacing.md,
-                                          ),
-                                          onTap:
-                                              () => Navigator.of(
-                                                context,
-                                              ).pop(info.name),
-                                          child: SizedBox(
-                                            height: Scale.of(context, 56),
-                                            child: Row(
-                                              children: [
-                                                if (info.thumb != null)
-                                                  ClipRRect(
-                                                    borderRadius:
-                                                        BorderRadius.only(
-                                                          topLeft:
-                                                              Radius.circular(
-                                                                AppSpacing.md,
-                                                              ),
-                                                          bottomLeft:
-                                                              Radius.circular(
-                                                                AppSpacing.md,
-                                                              ),
-                                                          topRight:
-                                                              Radius.circular(
-                                                                0,
-                                                              ),
-                                                          bottomRight:
-                                                              Radius.circular(
-                                                                0,
-                                                              ),
-                                                        ),
-                                                    child: Image.memory(
-                                                      info.thumb!,
-                                                      width: Scale.of(
-                                                        context,
-                                                        56,
-                                                      ),
-                                                      height: Scale.of(
-                                                        context,
-                                                        56,
-                                                      ),
-                                                      fit: BoxFit.cover,
-                                                    ),
-                                                  )
-                                                else
-                                                  Container(
-                                                    width: Scale.of(
-                                                      context,
-                                                      56,
-                                                    ),
-                                                    height: Scale.of(
-                                                      context,
-                                                      56,
-                                                    ),
-                                                    decoration: const BoxDecoration(
-                                                      color: Color(0xFFE0E0E0),
-                                                      borderRadius:
-                                                          BorderRadius.only(
-                                                            topLeft:
-                                                                Radius.circular(
-                                                                  16,
-                                                                ),
-                                                            bottomLeft:
-                                                                Radius.circular(
-                                                                  16,
-                                                                ),
-                                                            topRight:
-                                                                Radius.circular(
-                                                                  0,
-                                                                ),
-                                                            bottomRight:
-                                                                Radius.circular(
-                                                                  0,
-                                                                ),
-                                                          ),
-                                                    ),
-                                                    child: Icon(
-                                                      Icons.photo,
-                                                      size: Scale.of(
-                                                        context,
-                                                        16,
-                                                      ),
-                                                      color:
-                                                          AppColors.secondary,
-                                                    ),
-                                                  ),
-                                                SizedBox(width: AppSpacing.sm),
-                                                Expanded(
-                                                  child: Padding(
-                                                    padding:
-                                                        EdgeInsets.symmetric(
-                                                          vertical:
-                                                              AppSpacing.sm,
-                                                        ),
-                                                    child: Text(
-                                                      info.name,
-                                                      style: AppTextStyles.label(
-                                                        context,
-                                                      ).copyWith(
-                                                        color:
-                                                            Theme.of(context)
-                                                                .colorScheme
-                                                                .onSurfaceVariant,
-                                                      ),
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                    ),
-                                                  ),
-                                                ),
-                                                SizedBox(width: AppSpacing.sm),
-                                                Row(
-                                                  mainAxisSize:
-                                                      MainAxisSize.min,
-                                                  children: [
-                                                    Text(
-                                                      '${info.count}',
-                                                      style: AppTextStyles.body(
-                                                        context,
-                                                      ).copyWith(
-                                                        fontSize: Scale.of(
-                                                          context,
-                                                          14,
-                                                        ),
-                                                        color:
-                                                            Theme.of(context)
-                                                                .colorScheme
-                                                                .onSurfaceVariant,
-                                                      ),
-                                                    ),
-                                                    SizedBox(
-                                                      width: AppSpacing.xs,
-                                                    ),
-                                                    Icon(
-                                                      Icons.photo,
-                                                      size: Scale.of(
-                                                        context,
-                                                        16,
-                                                      ),
-                                                      color:
-                                                          AppColors.secondary,
-                                                    ),
-                                                  ],
-                                                ),
-                                                SizedBox(width: AppSpacing.sm),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(width: AppSpacing.lg),
-                                  ],
-                                );
-                              },
-                            );
-                          },
-                        ),
-                      ),
-                      SizedBox(height: AppSpacing.lg),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Expanded(
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: AppSpacing.lg,
-                              ),
-                              child: Material(
-                                color:
-                                    Theme.of(
-                                      context,
-                                    ).colorScheme.surfaceContainerHighest,
-                                borderRadius: BorderRadius.circular(
-                                  AppSpacing.md,
-                                ),
-                                child: InkWell(
-                                  borderRadius: BorderRadius.circular(
-                                    AppSpacing.md,
-                                  ),
-                                  onTap: () async {
-                                    final controller = TextEditingController();
-                                    final albumName = await showDialog<String>(
-                                      context: context,
-                                      builder: (context) {
-                                        return AlertDialog(
-                                          title: Text(
-                                            'New Album',
-                                            style: AppTextStyles.title(context),
-                                          ),
-                                          content: TextField(
-                                            controller: controller,
-                                            autofocus: true,
-                                            decoration: InputDecoration(
-                                              hintText: 'Album name',
-                                              hintStyle: AppTextStyles.body(
-                                                context,
-                                              ),
-                                            ),
-                                          ),
-                                          actions: [
-                                            TextButton(
-                                              onPressed:
-                                                  () =>
-                                                      Navigator.of(
-                                                        context,
-                                                      ).pop(),
-                                              child: Text(
-                                                'Cancel',
-                                                style: AppTextStyles.button(
-                                                  context,
-                                                ),
-                                              ),
-                                            ),
-                                            ElevatedButton(
-                                              onPressed: () {
-                                                final name =
-                                                    controller.text.trim();
-                                                if (name.isNotEmpty) {
-                                                  Navigator.of(
-                                                    context,
-                                                  ).pop(name);
-                                                }
-                                              },
-                                              child: Text(
-                                                'Create',
-                                                style: AppTextStyles.button(
-                                                  context,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        );
-                                      },
-                                    );
-                                    if (albumName != null &&
-                                        albumName.isNotEmpty) {
-                                      Navigator.of(
-                                        context,
-                                      ).pop('CREATE_ALBUM:$albumName');
-                                    }
-                                  },
-                                  child: SizedBox(
-                                    height: Scale.of(context, 48),
-                                    child: Center(
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            Icons.add,
-                                            size: Scale.of(context, 22),
-                                            color:
-                                                Theme.of(
-                                                  context,
-                                                ).colorScheme.onSurfaceVariant,
-                                          ),
-                                          SizedBox(width: AppSpacing.sm),
-                                          Text(
-                                            'Add',
-                                            style: AppTextStyles.button(
-                                              context,
-                                            ).copyWith(
-                                              color:
-                                                  Theme.of(context)
-                                                      .colorScheme
-                                                      .onSurfaceVariant,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: AppSpacing.sm),
-                          Expanded(
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: AppSpacing.lg,
-                              ),
-                              child: Material(
-                                color:
-                                    Theme.of(
-                                      context,
-                                    ).colorScheme.surfaceContainerHighest,
-                                borderRadius: BorderRadius.circular(
-                                  AppSpacing.md,
-                                ),
-                                child: InkWell(
-                                  borderRadius: BorderRadius.circular(
-                                    AppSpacing.md,
-                                  ),
-                                  onTap: () => Navigator.of(context).pop(),
-                                  child: SizedBox(
-                                    height: Scale.of(context, 48),
-                                    child: Center(
-                                      child: Text(
-                                        'Close',
-                                        style: AppTextStyles.button(
-                                          context,
-                                        ).copyWith(
-                                          color:
-                                              Theme.of(
-                                                context,
-                                              ).colorScheme.onSurfaceVariant,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: AppSpacing.xl),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-    if (selected != null) {
-      if (selected.startsWith('CREATE_ALBUM:')) {
-        final albumName = selected.substring('CREATE_ALBUM:'.length);
-        final created = await PhotoActionService.createAlbum(albumName);
-        if (!created) {
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Could not create album.',
-                style: AppTextStyles.body(context),
-              ),
-            ),
-          );
-          return;
-        }
-        final ok = await PhotoActionService.addToAlbum(photo, albumName);
-        if (!ok) {
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Failed to add to new album.',
-                style: AppTextStyles.body(context),
-              ),
-            ),
-          );
-        }
-      } else {
-        final ok = await PhotoActionService.addToAlbum(photo, selected);
-        if (!ok) {
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Failed to add to album.',
-                style: AppTextStyles.body(context),
-              ),
-            ),
-          );
-        }
-      }
-    }
-  }
-
-  // Helper: fetch album info (name, count, thumb)
-  Future<List<AlbumInfo>> _fetchAlbumInfos(List<String> albums) async {
-    final List<AlbumInfo> infos = [];
-    for (final name in albums) {
-      try {
-        final paths = await PhotoManager.getAssetPathList(
-          hasAll: false,
-          filterOption: FilterOptionGroup(
-            containsPathModified: false,
-            orders: [
-              const OrderOption(type: OrderOptionType.createDate, asc: false),
-            ],
-          ),
-        );
-        AssetPathEntity? match;
-        try {
-          match = paths.firstWhere((p) => p.name == name);
-        } catch (_) {
-          match = null;
-        }
-        if (match != null) {
-          final count = match.assetCountAsync;
-          final assets = await match.getAssetListRange(start: 0, end: 1);
-          final thumb =
-              assets.isNotEmpty
-                  ? await assets.first.thumbnailDataWithSize(
-                    const ThumbnailSize(80, 80),
-                  )
-                  : null;
-          infos.add(AlbumInfo(name: name, count: await count, thumb: thumb));
-        } else {
-          infos.add(AlbumInfo(name: name, count: 0, thumb: null));
-        }
-      } catch (_) {
-        infos.add(AlbumInfo(name: name, count: 0, thumb: null));
-      }
-    }
-    return infos;
-  }
-
-  // Placeholder for add to album
-  bool _isInAlbum(PhotoModel photo) => false; // TODO: implement real check
-  Future<void> _addToAlbum(PhotoModel photo) async {
-    await _showAlbumPicker(photo);
-  }
-
   @override
   Widget build(BuildContext context) {
-    debugPrint(
-      'BUILD: deck=${_swipeLogicService.deck.map((p) => p.id).toList()}',
-    );
     if (_swipeLogicService.deck.isNotEmpty) {
       final top = _swipeLogicService.topCard!;
     }
@@ -1004,9 +426,6 @@ class _SwipeScreenState extends State<SwipeScreen>
                                         _swipeLogicService.canSwipe() &&
                                                 !_isAnimatingOut
                                             ? (details) {
-                                              debugPrint(
-                                                'Gesture: onPanUpdate',
-                                              );
                                               _handleCardPanUpdate(details);
                                             }
                                             : null,
@@ -1014,7 +433,6 @@ class _SwipeScreenState extends State<SwipeScreen>
                                         _swipeLogicService.canSwipe() &&
                                                 !_isAnimatingOut
                                             ? (details) {
-                                              debugPrint('Gesture: onPanEnd');
                                               _handleCardPanEnd(details);
                                             }
                                             : null,
@@ -1050,16 +468,116 @@ class _SwipeScreenState extends State<SwipeScreen>
                         return SwipeActionButtonGroup(
                           photo: _swipeLogicService.topCard!,
                           isFavorite: isFavorite,
-                          onFavorite:
-                              () =>
-                                  _toggleFavorite(_swipeLogicService.topCard!),
-                          isInAlbum: _isInAlbum(_swipeLogicService.topCard!),
-                          onAddToAlbum:
-                              () => _addToAlbum(_swipeLogicService.topCard!),
+                          onFavoriteToggled: (updatedPhoto) {
+                            setState(() {
+                              final idx = widget.assets.indexWhere(
+                                (p) => p.id == updatedPhoto.id,
+                              );
+                              if (idx != -1) {
+                                widget.assets[idx] = updatedPhoto;
+                              }
+                              final deckIdx = _swipeLogicService.deck
+                                  .indexWhere((p) => p.id == updatedPhoto.id);
+                              if (deckIdx != -1) {
+                                _swipeLogicService.deck[deckIdx] = updatedPhoto;
+                              }
+                            });
+                          },
+                          isInAlbum:
+                              false, // TODO: implement real check if needed
+                          onAddToAlbum: () async {
+                            final result = await showAlbumPickerDialog(
+                              context,
+                              _swipeLogicService.topCard!,
+                            );
+                            if (result != null &&
+                                result.startsWith('CREATE_ALBUM:')) {
+                              final albumName = result.substring(
+                                'CREATE_ALBUM:'.length,
+                              );
+                              final created =
+                                  await PhotoActionService.createAlbum(
+                                    albumName,
+                                  );
+                              if (!mounted) return;
+                              if (created) {
+                                final ok = await PhotoActionService.addToAlbum(
+                                  _swipeLogicService.topCard!,
+                                  albumName,
+                                );
+                                if (ok) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'Photo added to album "$albumName"!',
+                                        style: AppTextStyles.body(context),
+                                      ),
+                                    ),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'Album created, but failed to add photo.',
+                                        style: AppTextStyles.body(context),
+                                      ),
+                                    ),
+                                  );
+                                }
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Failed to create album.',
+                                      style: AppTextStyles.body(context),
+                                    ),
+                                  ),
+                                );
+                              }
+                            } else if (result != null && result.isNotEmpty) {
+                              final ok = await PhotoActionService.addToAlbum(
+                                _swipeLogicService.topCard!,
+                                result,
+                              );
+                              if (!mounted) return;
+                              if (ok) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Photo added to album "$result"!',
+                                      style: AppTextStyles.body(context),
+                                    ),
+                                  ),
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Failed to add photo to album.',
+                                      style: AppTextStyles.body(context),
+                                    ),
+                                  ),
+                                );
+                              }
+                            }
+                          },
                           onShare:
                               () => PhotoActionService.sharePhoto(
                                 _swipeLogicService.topCard!,
                               ),
+                          showSnackBar: (message, {action}) {
+                            if (!mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  message,
+                                  style: AppTextStyles.body(context),
+                                ),
+                                action: action,
+                                duration: const Duration(seconds: 3),
+                              ),
+                            );
+                          },
                         );
                       },
                     ),
