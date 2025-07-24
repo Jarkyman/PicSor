@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../models/photo_model.dart';
-import '../core/theme.dart';
+import '../../models/photo_model.dart';
+import '../../core/theme.dart';
 import 'package:photo_manager/photo_manager.dart';
-import '../services/photo_action_service.dart';
+import '../../services/photo_action_service.dart';
 
 typedef FavoriteToggledCallback = void Function(PhotoModel updatedPhoto);
 typedef SnackBarCallback =
