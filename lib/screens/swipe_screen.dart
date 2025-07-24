@@ -7,8 +7,10 @@ import '../services/swipe_logic_service.dart';
 import '../services/photo_action_service.dart';
 import '../widgets/swipe_card.dart';
 import '../widgets/swipe_action_button_group.dart';
+import '../widgets/swipe_live_label_utils.dart';
 import 'dart:io';
 import 'dart:ui';
+import '../widgets/dialogs.dart';
 import '../models/album_info.dart';
 import '../core/theme.dart';
 
@@ -104,30 +106,9 @@ class _SwipeScreenState extends State<SwipeScreen>
     // Optionally implement refresh logic if needed
   }
 
-  void _showTimeCheatDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder:
-          (context) => AlertDialog(
-            title: Text(
-              'Time Manipulation Detected',
-              style: AppTextStyles.title(context),
-            ),
-            content: Text(
-              'Device time appears to have been set backwards. Swiping is blocked. Please correct your system time.',
-              style: AppTextStyles.body(context),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text('OK', style: AppTextStyles.button(context)),
-              ),
-            ],
-          ),
-    );
-  }
-
+  /// Triggers a deck swipe animation.
+  ///
+  /// @param type The type of swipe action to trigger.
   void _triggerDeckSwipe(PhotoActionType type) {
     debugPrint(
       'CALL: _triggerDeckSwipe($type), _isAnimatingOut=$_isAnimatingOut, deckEmpty=${_swipeLogicService.deck.isEmpty}, _pendingSwipe=$_pendingSwipe',
@@ -161,6 +142,9 @@ class _SwipeScreenState extends State<SwipeScreen>
     _swipeController.forward(from: 0);
   }
 
+  /// Handles the update of the card pan.
+  ///
+  /// @param details The details of the drag update.
   void _handleCardPanUpdate(DragUpdateDetails details) {
     setState(() {
       // Determine drag direction on first update
@@ -182,6 +166,9 @@ class _SwipeScreenState extends State<SwipeScreen>
     });
   }
 
+  /// Handles the end of the card pan.
+  ///
+  /// @param details The details of the drag end.
   void _handleCardPanEnd(DragEndDetails details) {
     final velocity = details.velocity.pixelsPerSecond;
     final width = MediaQuery.of(context).size.width;
@@ -235,35 +222,6 @@ class _SwipeScreenState extends State<SwipeScreen>
       _cardAnimController.reset();
       _cardAnimController.forward();
     }
-  }
-
-  String? _getLiveLabel(Offset offset) {
-    if (!_isDragging) return null;
-    if (offset.dx > 20 && offset.dx.abs() > offset.dy.abs()) return 'Keep';
-    if (offset.dx < -20 && offset.dx.abs() > offset.dy.abs()) return 'Delete';
-    if (offset.dy < -20 && offset.dy.abs() > offset.dx.abs()) {
-      return 'Sort later';
-    }
-    return null;
-  }
-
-  Color? _getLiveLabelColor(Offset offset) {
-    if (!_isDragging) return null;
-    if (offset.dx > 20 && offset.dx.abs() > offset.dy.abs()) {
-      return Colors.green;
-    }
-    if (offset.dx < -20 && offset.dx.abs() > offset.dy.abs()) return Colors.red;
-    if (offset.dy < -20 && offset.dy.abs() > offset.dx.abs()) {
-      return Colors.purple;
-    }
-    return null;
-  }
-
-  bool _shouldShowLiveLabel(Offset offset, bool isDragging) {
-    if (!isDragging) return false;
-    if (offset.dx.abs() > 20 && offset.dx.abs() > offset.dy.abs()) return true;
-    if (offset.dy < -20 && offset.dy.abs() > offset.dx.abs()) return true;
-    return false;
   }
 
   Future<bool> _isFavorite(PhotoModel photo) async {
@@ -931,7 +889,7 @@ class _SwipeScreenState extends State<SwipeScreen>
             }
             if (_timeCheatDetected) {
               WidgetsBinding.instance.addPostFrameCallback(
-                (_) => _showTimeCheatDialog(),
+                (_) => showTimeCheatDialog(context),
               );
               return Center(
                 child: Text(
@@ -941,12 +899,9 @@ class _SwipeScreenState extends State<SwipeScreen>
               );
             }
             // Live label logic
-            final liveLabel = _getLiveLabel(_dragOffset);
-            final liveLabelColor = _getLiveLabelColor(_dragOffset);
-            final showLiveLabel = _shouldShowLiveLabel(
-              _dragOffset,
-              _isDragging,
-            );
+            final liveLabel = getLiveLabel(_dragOffset, _isDragging);
+            final liveLabelColor = getLiveLabelColor(_dragOffset, _isDragging);
+            final showLiveLabel = shouldShowLiveLabel(_dragOffset, _isDragging);
             Widget? floatingLabel;
             if (showLiveLabel && liveLabel != null && liveLabelColor != null) {
               Alignment alignment = Alignment.center;
