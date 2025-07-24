@@ -65,7 +65,6 @@ class AppTextStyles {
   static TextStyle button(BuildContext context) => TextStyle(
     fontSize: Scale.of(context, 18),
     fontWeight: FontWeight.w600,
-    color: Theme.of(context).colorScheme.onPrimary,
   );
 }
 
