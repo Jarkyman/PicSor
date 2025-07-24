@@ -14,6 +14,7 @@ import '../widgets/dialogs.dart';
 import '../models/album_info.dart';
 import '../widgets/swipe/album_picker_dialog.dart';
 import '../core/theme.dart';
+import '../widgets/swipe/swipe_deck.dart';
 
 class SwipeScreen extends StatefulWidget {
   final SwipeLogicService swipeLogicService;
@@ -369,92 +370,18 @@ class _SwipeScreenState extends State<SwipeScreen>
               children: [
                 // a. Background layer
                 Container(color: Theme.of(context).colorScheme.surface),
-                // b. Swipe card deck
-                Center(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final maxCardWidth = constraints.maxWidth;
-                      final maxCardHeight = constraints.maxHeight;
-                      return Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          // Card stack
-                          ...List.generate(_swipeLogicService.deck.length, (i) {
-                            final renderIndex =
-                                _swipeLogicService.deck.length - 1 - i;
-                            final isTop = renderIndex == 0;
-                            final offsetY = i * 8.0;
-                            final photo = _swipeLogicService.deck[renderIndex];
-                            final aspectRatio =
-                                (photo.asset.width > 0 &&
-                                        photo.asset.height > 0)
-                                    ? photo.asset.width / photo.asset.height
-                                    : 1.0;
-                            // Calculate card size to fit inside max bounds
-                            double cardWidth = maxCardWidth;
-                            double cardHeight = cardWidth / aspectRatio;
-                            if (cardHeight > maxCardHeight) {
-                              cardHeight = maxCardHeight;
-                              cardWidth = cardHeight * aspectRatio;
-                            }
-                            Widget card = SizedBox(
-                              width: cardWidth,
-                              height: cardHeight,
-                              child: SwipeCard(
-                                photo: photo,
-                                isTop: isTop,
-                                aspectRatio: aspectRatio,
-                                // evt. liveLabel props
-                              ),
-                            );
-                            card = Transform.translate(
-                              offset: Offset(0, offsetY),
-                              child: card,
-                            );
-                            if (isTop) {
-                              card = AnimatedBuilder(
-                                animation: _cardAnimController,
-                                builder: (context, child) {
-                                  final offset =
-                                      _isDragging
-                                          ? _dragOffset
-                                          : (_cardAnimController.isAnimating
-                                              ? _cardAnim.value
-                                              : Offset.zero);
-                                  return GestureDetector(
-                                    onPanUpdate:
-                                        _swipeLogicService.canSwipe() &&
-                                                !_isAnimatingOut
-                                            ? (details) {
-                                              _handleCardPanUpdate(details);
-                                            }
-                                            : null,
-                                    onPanEnd:
-                                        _swipeLogicService.canSwipe() &&
-                                                !_isAnimatingOut
-                                            ? (details) {
-                                              _handleCardPanEnd(details);
-                                            }
-                                            : null,
-                                    child: Transform.translate(
-                                      offset: offset,
-                                      child: child,
-                                    ),
-                                  );
-                                },
-                                child: card,
-                              );
-                            }
-                            return Positioned.fill(child: Center(child: card));
-                          }),
-                          // Floating live label
-                          if (floatingLabel != null) floatingLabel,
-                        ],
-                      );
-                    },
-                  ),
+                // b. Swipe card deck (nu SwipeDeck)
+                SwipeDeck(
+                  deck: _swipeLogicService.deck,
+                  isEnabled:
+                      _swipeLogicService.canSwipe() && !_timeCheatDetected,
+                  onSwipe: (type) {
+                    setState(() {
+                      _swipeLogicService.handleDeckSwipe(type);
+                    });
+                  },
                 ),
-                // c. Action button group (last child, always on top)
+                // c. Action button group (sidder stadig øverst)
                 if (_swipeLogicService.deck.isNotEmpty)
                   Positioned(
                     bottom: 24,
