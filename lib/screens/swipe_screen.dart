@@ -1,17 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:photo_manager/photo_manager.dart';
 import '../models/photo_model.dart';
-import '../models/photo_action.dart';
 import '../core/app_routes.dart';
 import '../services/swipe_logic_service.dart';
 import '../services/photo_action_service.dart';
-import '../widgets/swipe/swipe_card.dart';
 import '../widgets/swipe/swipe_action_button_group.dart';
-import '../widgets/swipe/swipe_live_label_utils.dart';
-import 'dart:io';
-import 'dart:ui';
 import '../widgets/dialogs.dart';
-import '../models/album_info.dart';
 import '../widgets/swipe/album_picker_dialog.dart';
 import '../core/theme.dart';
 import '../widgets/swipe/swipe_deck.dart';
@@ -33,67 +26,18 @@ class SwipeScreen extends StatefulWidget {
 class _SwipeScreenState extends State<SwipeScreen>
     with TickerProviderStateMixin, WidgetsBindingObserver {
   late SwipeLogicService _swipeLogicService;
-  bool _timeCheatDetected = false;
-  late AnimationController _swipeController;
-  late Animation<Offset> _swipeAnimation;
-  PhotoActionType? _pendingSwipe;
-  bool _isAnimatingOut = false;
-  Offset _dragOffset = Offset.zero;
-  Offset _swipeEndOffset = Offset.zero;
-  bool _isDragging = false;
-  late AnimationController _cardAnimController;
-  late Animation<Offset> _cardAnim;
-  String? _dragDirection; // 'horizontal' or 'up' or null
+  final bool _timeCheatDetected = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _swipeLogicService = widget.swipeLogicService;
-    _swipeController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
-    _swipeController.addStatusListener((status) {
-      debugPrint(
-        'SWIPE ANIMATION STATUS: $status, _isAnimatingOut=$_isAnimatingOut, _pendingSwipe=$_pendingSwipe',
-      );
-      if (status == AnimationStatus.completed && _isAnimatingOut) {
-        debugPrint(
-          'SWIPE ANIMATION COMPLETED: _isAnimatingOut=$_isAnimatingOut, _pendingSwipe=$_pendingSwipe',
-        );
-        if (_pendingSwipe != null) {
-          debugPrint(
-            'SWIPE ANIMATION COMPLETED: calling handleDeckSwipe(${_pendingSwipe!})',
-          );
-          setState(() {
-            _swipeLogicService.handleDeckSwipe(_pendingSwipe!);
-            debugPrint(
-              'SWIPE ANIMATION COMPLETED: handleDeckSwipe done, resetting _isAnimatingOut and _pendingSwipe',
-            );
-            _isAnimatingOut = false;
-            _pendingSwipe = null;
-            _dragOffset = Offset.zero;
-            _swipeEndOffset = Offset.zero;
-          });
-        }
-      }
-    });
-    _cardAnimController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
-    _cardAnim = Tween<Offset>(
-      begin: Offset.zero,
-      end: Offset.zero,
-    ).animate(_cardAnimController);
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _swipeController.dispose();
-    _cardAnimController.dispose();
     super.dispose();
   }
 
@@ -110,9 +54,6 @@ class _SwipeScreenState extends State<SwipeScreen>
 
   @override
   Widget build(BuildContext context) {
-    if (_swipeLogicService.deck.isNotEmpty) {
-      final top = _swipeLogicService.topCard!;
-    }
     return Scaffold(
       appBar: AppBar(
         title: Text('PicSor', style: AppTextStyles.title(context)),
@@ -195,55 +136,6 @@ class _SwipeScreenState extends State<SwipeScreen>
                 child: Text(
                   'Swiping is blocked due to time manipulation.',
                   style: AppTextStyles.body(context),
-                ),
-              );
-            }
-            // Live label logic
-            final liveLabel = getLiveLabel(_dragOffset, _isDragging);
-            final liveLabelColor = getLiveLabelColor(_dragOffset, _isDragging);
-            final showLiveLabel = shouldShowLiveLabel(_dragOffset, _isDragging);
-            Widget? floatingLabel;
-            if (showLiveLabel && liveLabel != null && liveLabelColor != null) {
-              Alignment alignment = Alignment.center;
-              EdgeInsets padding = EdgeInsets.zero;
-              switch (liveLabel) {
-                case 'Keep':
-                  alignment = Alignment.centerRight;
-                  padding = EdgeInsets.only(right: AppSpacing.lg);
-                  break;
-                case 'Delete':
-                  alignment = Alignment.centerLeft;
-                  padding = EdgeInsets.only(left: AppSpacing.lg);
-                  break;
-                case 'Sort later':
-                  alignment = Alignment.topCenter;
-                  padding = EdgeInsets.only(top: AppSpacing.xl);
-                  break;
-              }
-              floatingLabel = Align(
-                alignment: alignment,
-                child: AnimatedOpacity(
-                  opacity: showLiveLabel ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 120),
-                  child: Padding(
-                    padding: padding,
-                    child: Text(
-                      liveLabel,
-                      style: AppTextStyles.headline(context).copyWith(
-                        color: liveLabelColor,
-                        fontSize: Scale.of(context, 36),
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 2,
-                        shadows: [
-                          Shadow(
-                            blurRadius: 24,
-                            color: liveLabelColor.withValues(alpha: 0.8),
-                            offset: Offset(0, 0),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
                 ),
               );
             }
