@@ -5,14 +5,14 @@ import '../models/photo_action.dart';
 import '../core/app_routes.dart';
 import '../services/swipe_logic_service.dart';
 import '../services/photo_action_service.dart';
-import '../widgets/swipe_card.dart';
-import '../widgets/swipe_action_button_group.dart';
-import '../widgets/swipe_live_label_utils.dart';
+import '../widgets/swipe/swipe_card.dart';
+import '../widgets/swipe/swipe_action_button_group.dart';
+import '../widgets/swipe/swipe_live_label_utils.dart';
 import 'dart:io';
 import 'dart:ui';
 import '../widgets/dialogs.dart';
 import '../models/album_info.dart';
-import '../widgets/album_picker_dialog.dart';
+import '../widgets/swipe/swipe_actions/album_picker_dialog.dart';
 import '../core/theme.dart';
 
 class SwipeScreen extends StatefulWidget {
