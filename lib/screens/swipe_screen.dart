@@ -12,7 +12,7 @@ import 'dart:io';
 import 'dart:ui';
 import '../widgets/dialogs.dart';
 import '../models/album_info.dart';
-import '../widgets/swipe/swipe_actions/album_picker_dialog.dart';
+import '../widgets/swipe/album_picker_dialog.dart';
 import '../core/theme.dart';
 
 class SwipeScreen extends StatefulWidget {
