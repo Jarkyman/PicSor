@@ -224,11 +224,6 @@ class _SwipeScreenState extends State<SwipeScreen>
     }
   }
 
-  Future<bool> _isFavorite(PhotoModel photo) async {
-    final isFav = await PhotoActionService.isSystemFavorite(photo.id);
-    return isFav;
-  }
-
   Future<void> _toggleFavorite(PhotoModel photo) async {
     final success = await PhotoActionService.toggleFavorite(photo);
     if (success) {
@@ -1047,7 +1042,9 @@ class _SwipeScreenState extends State<SwipeScreen>
                     bottom: 24,
                     right: 16,
                     child: FutureBuilder<bool>(
-                      future: _isFavorite(_swipeLogicService.topCard!),
+                      future: PhotoActionService.isSystemFavorite(
+                        _swipeLogicService.topCard!.id,
+                      ),
                       builder: (context, snapshot) {
                         final isFavorite = snapshot.data ?? false;
                         return SwipeActionButtonGroup(
