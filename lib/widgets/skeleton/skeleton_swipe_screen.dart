@@ -8,26 +8,7 @@ class SkeletonSwipeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: _buildSkeletonAppBar(context),
-      body: SafeArea(child: _buildSkeletonContent(context)),
-    );
-  }
-
-  PreferredSizeWidget _buildSkeletonAppBar(BuildContext context) {
-    return AppBar(
-      title: _buildSkeletonText(context, 120, 24),
-      actions: [
-        _buildSkeletonText(context, 80, 16),
-        const SizedBox(width: AppSpacing.md),
-        _buildSkeletonButton(context, 40),
-        const SizedBox(width: AppSpacing.sm),
-        _buildSkeletonButton(context, 40),
-        const SizedBox(width: AppSpacing.sm),
-        _buildSkeletonButton(context, 40),
-        const SizedBox(width: AppSpacing.md),
-      ],
-    );
+    return _buildSkeletonContent(context);
   }
 
   Widget _buildSkeletonContent(BuildContext context) {
@@ -62,34 +43,6 @@ class SkeletonSwipeScreen extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildSkeletonText(BuildContext context, double width, double height) {
-    return Container(
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(height / 2),
-        color:
-            Theme.of(context).brightness == Brightness.light
-                ? Colors.grey[300]
-                : Colors.grey[700],
-      ),
-    );
-  }
-
-  Widget _buildSkeletonButton(BuildContext context, double size) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(size / 2),
-        color:
-            Theme.of(context).brightness == Brightness.light
-                ? Colors.grey[300]
-                : Colors.grey[700],
-      ),
     );
   }
 }
