@@ -6,12 +6,15 @@ import '../../services/album_handler_service.dart';
 import '../../core/theme.dart';
 import '../../widgets/swipe/swipe_deck.dart';
 import '../../widgets/swipe/swipe_action_button_group.dart';
+import '../skeleton/skeleton_swipe_screen.dart';
 
 class SwipeContent extends StatelessWidget {
   final List<PhotoModel> assets;
   final SwipeLogicService swipeLogicService;
   final bool timeCheatDetected;
   final Function(PhotoModel) onPhotoUpdated;
+  final bool isLoading;
+  final VoidCallback? onSwipe; // Add callback for swipe events
 
   const SwipeContent({
     super.key,
@@ -19,10 +22,16 @@ class SwipeContent extends StatelessWidget {
     required this.swipeLogicService,
     required this.timeCheatDetected,
     required this.onPhotoUpdated,
+    this.isLoading = false,
+    this.onSwipe,
   });
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const SkeletonSwipeScreen();
+    }
+
     if (assets.isEmpty) {
       return Center(
         child: Text('No media found.', style: AppTextStyles.body(context)),
@@ -59,6 +68,7 @@ class SwipeContent extends StatelessWidget {
           isEnabled: swipeLogicService.canSwipe() && !timeCheatDetected,
           onSwipe: (type) {
             swipeLogicService.handleDeckSwipe(type);
+            onSwipe?.call(); // Trigger parent rebuild
           },
         ),
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/onboarding_manager.dart';
 import '../services/app_initializer.dart';
-import '../core/theme.dart';
+import '../widgets/skeleton/skeleton_splash_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -63,27 +63,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.photo_library_outlined,
-                size: Scale.of(context, 72),
-                color: AppColors.primary,
-              ),
-              SizedBox(height: AppSpacing.xl),
-              const CircularProgressIndicator(),
-              SizedBox(height: AppSpacing.lg),
-              Text(
-                'Loading your gallery...',
-                style: AppTextStyles.title(context),
-              ),
-            ],
-          ),
-        ),
-      );
+      return const SkeletonSplashScreen();
     }
 
     if (_onboardingManager.showOnboarding) {

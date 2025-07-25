@@ -4,7 +4,7 @@ import '../../core/theme.dart';
 import '../../services/swipe_logic_service.dart';
 import '../../models/photo_model.dart';
 
-class SwipeAppBar extends StatelessWidget implements PreferredSizeWidget {
+class SwipeAppBar extends StatefulWidget implements PreferredSizeWidget {
   final SwipeLogicService swipeLogicService;
   final List<PhotoModel> assets;
   final VoidCallback onUndo;
@@ -17,6 +17,14 @@ class SwipeAppBar extends StatelessWidget implements PreferredSizeWidget {
   });
 
   @override
+  State<SwipeAppBar> createState() => _SwipeAppBarState();
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+}
+
+class _SwipeAppBarState extends State<SwipeAppBar> {
+  @override
   Widget build(BuildContext context) {
     return AppBar(
       title: Text('PicSor', style: AppTextStyles.title(context)),
@@ -25,7 +33,7 @@ class SwipeAppBar extends StatelessWidget implements PreferredSizeWidget {
           padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
           child: Center(
             child: Text(
-              '${swipeLogicService.swipesLeft} swipes',
+              '${widget.swipeLogicService.swipesLeft} swipes',
               style: AppTextStyles.label(context),
             ),
           ),
@@ -33,7 +41,13 @@ class SwipeAppBar extends StatelessWidget implements PreferredSizeWidget {
         IconButton(
           icon: Icon(Icons.undo, size: Scale.of(context, 24)),
           tooltip: 'Undo',
-          onPressed: swipeLogicService.undoStack.isNotEmpty ? onUndo : null,
+          onPressed:
+              widget.swipeLogicService.undoStack.isNotEmpty
+                  ? () {
+                    widget.onUndo();
+                    setState(() {}); // Trigger rebuild after undo
+                  }
+                  : null,
         ),
         IconButton(
           icon: Icon(Icons.delete_outline, size: Scale.of(context, 24)),
@@ -42,7 +56,10 @@ class SwipeAppBar extends StatelessWidget implements PreferredSizeWidget {
             Navigator.pushNamed(
               context,
               AppRoutes.deleted,
-              arguments: swipeLogicService.getActionsForType(assets, 'delete'),
+              arguments: widget.swipeLogicService.getActionsForType(
+                widget.assets,
+                'delete',
+              ),
             );
           },
         ),
@@ -53,8 +70,8 @@ class SwipeAppBar extends StatelessWidget implements PreferredSizeWidget {
             Navigator.pushNamed(
               context,
               AppRoutes.sortLater,
-              arguments: swipeLogicService.getActionsForType(
-                assets,
+              arguments: widget.swipeLogicService.getActionsForType(
+                widget.assets,
                 'sort_later',
               ),
             );
@@ -63,7 +80,4 @@ class SwipeAppBar extends StatelessWidget implements PreferredSizeWidget {
       ],
     );
   }
-
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }

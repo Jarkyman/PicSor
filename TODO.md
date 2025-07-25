@@ -2,14 +2,23 @@
 
 ## In Progress
 - [ ] **Fremtidige Refaktoreringer** - Potentielle forbedringer
-  - [ ] Tilføj loading states og skeleton screens
+  - [ ] Implementer smart caching for GalleryService (kun seneste billeder, begrænset størrelse)
 
 ## Pending
 - [ ] **Yderligere Optimeringer** - Valgfrie forbedringer
-  - [ ] Implementer smart caching for GalleryService (kun seneste billeder, begrænset størrelse)
   - [ ] Tilføj unit tests for services
 
 ## Completed
+- [x] **Loading States og Skeleton Screens** - Fuldt gennemført!
+  - [x] Oprettet `SkeletonCard` widget med animeret shimmer effekt
+  - [x] Oprettet `SkeletonButton` widget til action buttons
+  - [x] Oprettet `SkeletonSwipeScreen` til komplet swipe screen skeleton
+  - [x] Oprettet `SkeletonSplashScreen` til splash screen skeleton
+  - [x] Opdateret `SwipeContent` til at vise skeleton loading
+  - [x] Opdateret `SwipeScreen` til at håndtere loading state
+  - [x] Opdateret `SplashScreen` til at bruge skeleton i stedet for spinner
+  - [x] Forbedret brugeroplevelse med smooth loading transitions
+
 - [x] **SwipeScreen Yderligere Opdeling** - Fuldt gennemført!
   - [x] Oprettet `SwipeAppBar` widget til AppBar logik
   - [x] Oprettet `SwipeContent` widget til hovedindhold

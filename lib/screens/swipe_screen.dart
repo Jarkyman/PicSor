@@ -23,12 +23,14 @@ class _SwipeScreenState extends State<SwipeScreen>
     with TickerProviderStateMixin, WidgetsBindingObserver {
   late SwipeLogicService _swipeLogicService;
   final bool _timeCheatDetected = false;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _swipeLogicService = widget.swipeLogicService;
+    _initializeScreen();
   }
 
   @override
@@ -41,6 +43,16 @@ class _SwipeScreenState extends State<SwipeScreen>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       _refreshAssets();
+    }
+  }
+
+  Future<void> _initializeScreen() async {
+    // Simulate loading time for better UX
+    await Future.delayed(const Duration(milliseconds: 200));
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -91,6 +103,8 @@ class _SwipeScreenState extends State<SwipeScreen>
               swipeLogicService: _swipeLogicService,
               timeCheatDetected: _timeCheatDetected,
               onPhotoUpdated: _handlePhotoUpdated,
+              isLoading: _isLoading,
+              onSwipe: () => setState(() {}), // Trigger rebuild when swiping
             );
           },
         ),
