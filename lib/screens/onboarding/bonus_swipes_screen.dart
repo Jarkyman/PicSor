@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/theme.dart';
+import '../../widgets/onboarding/onboarding_icon.dart';
+import '../../widgets/onboarding/onboarding_title.dart';
+import '../../widgets/onboarding/onboarding_button_row.dart';
 
 class BonusSwipesScreen extends StatelessWidget {
   final VoidCallback onClaimed;
@@ -22,29 +25,9 @@ class BonusSwipesScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         SizedBox(height: AppSpacing.xl + AppSpacing.lg),
-                        Container(
-                          width: Scale.of(context, 100),
-                          height: Scale.of(context, 100),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surface,
-                            borderRadius: BorderRadius.circular(AppSpacing.lg),
-                          ),
-                          child: Center(
-                            child: Icon(
-                              Icons.card_giftcard,
-                              size: Scale.of(context, 56),
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.primary.withValues(alpha: 0.7),
-                            ),
-                          ),
-                        ),
+                        OnboardingIcon(icon: Icons.card_giftcard),
                         SizedBox(height: AppSpacing.xl),
-                        Text(
-                          'Welcome Bonus!',
-                          style: AppTextStyles.headline(context),
-                          textAlign: TextAlign.center,
-                        ),
+                        OnboardingTitle(text: 'Welcome Bonus!'),
                         SizedBox(height: AppSpacing.lg),
                         Expanded(
                           child: SingleChildScrollView(
@@ -56,26 +39,27 @@ class BonusSwipesScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                        SizedBox(height: AppSpacing.xl + AppSpacing.md),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: onClaimed,
-                            style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.symmetric(
-                                vertical: Scale.of(context, 16),
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                  AppSpacing.buttonRadius,
+                        SizedBox(height: AppSpacing.lg),
+                        OnboardingButtonRow(
+                          buttons: [
+                            ElevatedButton(
+                              onPressed: onClaimed,
+                              style: ElevatedButton.styleFrom(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: Scale.of(context, 16),
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                    AppSpacing.buttonRadius,
+                                  ),
                                 ),
                               ),
+                              child: Text(
+                                'Claim Bonus',
+                                style: AppTextStyles.button(context),
+                              ),
                             ),
-                            child: Text(
-                              'Claim Bonus',
-                              style: AppTextStyles.button(context),
-                            ),
-                          ),
+                          ],
                         ),
                         SizedBox(height: AppSpacing.lg),
                       ],

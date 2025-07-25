@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../core/theme.dart';
+import '../../widgets/onboarding/onboarding_icon.dart';
+import '../../widgets/onboarding/onboarding_title.dart';
+import '../../widgets/onboarding/onboarding_body.dart';
+import '../../widgets/onboarding/onboarding_button_row.dart';
 
 class PhotoPermissionScreen extends StatefulWidget {
   final VoidCallback onNext;
@@ -39,93 +43,100 @@ class _PhotoPermissionScreenState extends State<PhotoPermissionScreen> {
         child: Center(
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(height: AppSpacing.xl + AppSpacing.lg),
-                Container(
-                  width: Scale.of(context, 100),
-                  height: Scale.of(context, 100),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    borderRadius: BorderRadius.circular(AppSpacing.lg),
-                  ),
-                  child: Center(
-                    child: Icon(
-                      Icons.camera_alt_outlined,
-                      size: Scale.of(context, 56),
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.primary.withValues(alpha: 0.7),
+            child: LayoutBuilder(
+              builder:
+                  (context, constraints) => ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
                     ),
-                  ),
-                ),
-                SizedBox(height: AppSpacing.xl),
-                Text(
-                  'Photo Access Required',
-                  style: AppTextStyles.headline(context),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: AppSpacing.lg),
-                Text(
-                  'PicSor works 100% offline and never uploads your photos.\n\nWe only use your photos and videos to help you sort and organize your gallery on your device.',
-                  style: AppTextStyles.body(context),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: AppSpacing.xl + AppSpacing.md),
-                if (!_granted && !_requested)
-                  Column(
-                    children: [
-                      CircularProgressIndicator(),
-                      SizedBox(height: AppSpacing.lg),
-                      Text(
-                        'Checking photo access...',
-                        style: AppTextStyles.body(context),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  )
-                else if (!_granted && _requested)
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _openSettings,
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(
-                          vertical: Scale.of(context, 16),
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            AppSpacing.buttonRadius,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(height: AppSpacing.xl + AppSpacing.lg),
+                        OnboardingIcon(icon: Icons.camera_alt_outlined),
+                        SizedBox(height: AppSpacing.xl),
+                        OnboardingTitle(text: 'Photo Access Required'),
+                        SizedBox(height: AppSpacing.lg),
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.topCenter,
+                            child: OnboardingBody(
+                              text:
+                                  'PicSor works 100% offline and never uploads your photos.\n\nWe only use your photos and videos to help you sort and organize your gallery on your device.',
+                            ),
                           ),
                         ),
-                      ),
-                      child: Text(
-                        'Go to settings',
-                        style: AppTextStyles.button(context),
-                      ),
-                    ),
-                  )
-                else if (_granted)
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: widget.onNext,
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(
-                          vertical: Scale.of(context, 16),
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            AppSpacing.buttonRadius,
+                        if (!_granted && !_requested)
+                          Column(
+                            children: [
+                              CircularProgressIndicator(),
+                              SizedBox(height: AppSpacing.lg),
+                              Text(
+                                'Checking photo access...',
+                                style: AppTextStyles.body(context),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          )
+                        else if (!_granted && _requested)
+                          Column(
+                            children: [
+                              SizedBox(height: AppSpacing.lg),
+                              OnboardingButtonRow(
+                                buttons: [
+                                  ElevatedButton(
+                                    onPressed: _openSettings,
+                                    style: ElevatedButton.styleFrom(
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: Scale.of(context, 16),
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                          AppSpacing.buttonRadius,
+                                        ),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      'Go to settings',
+                                      style: AppTextStyles.button(context),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: AppSpacing.lg),
+                            ],
+                          )
+                        else if (_granted)
+                          Column(
+                            children: [
+                              SizedBox(height: AppSpacing.lg),
+                              OnboardingButtonRow(
+                                buttons: [
+                                  ElevatedButton(
+                                    onPressed: widget.onNext,
+                                    style: ElevatedButton.styleFrom(
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: Scale.of(context, 16),
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                          AppSpacing.buttonRadius,
+                                        ),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      'Next',
+                                      style: AppTextStyles.button(context),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: AppSpacing.lg),
+                            ],
                           ),
-                        ),
-                      ),
-                      child: Text('Next', style: AppTextStyles.button(context)),
+                      ],
                     ),
                   ),
-                SizedBox(height: AppSpacing.lg),
-              ],
             ),
           ),
         ),

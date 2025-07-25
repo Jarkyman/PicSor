@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../models/photo_model.dart';
-import '../core/theme.dart';
+import '../../models/photo_model.dart';
+import '../../core/theme.dart';
 
 class SwipeCard extends StatelessWidget {
   final PhotoModel photo;

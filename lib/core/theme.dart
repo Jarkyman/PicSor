@@ -18,6 +18,10 @@ class AppColors {
   static const darkSurfaceVariant = Color(0xFF2A2D36);
   static const darkOnSurface = Color(0xFFF7F8FA);
   static const darkOnSurfaceVariant = Color(0xFFF7F8FA);
+  static const surfaceContainerHighest = Color(
+    0xFFF5F5F5,
+  ); // samme som surfaceVariant
+  static const darkSurfaceContainerHighest = Color(0xFF2A2D36);
 }
 
 // Spacing and radius
@@ -76,7 +80,7 @@ ThemeData appTheme = ThemeData(
     secondary: AppColors.secondary,
     onSecondary: AppColors.onSecondary,
     surface: AppColors.surface,
-    surfaceVariant: AppColors.surfaceVariant,
+    surfaceContainerHighest: AppColors.surfaceContainerHighest,
     onSurface: AppColors.onSurface,
     onSurfaceVariant: AppColors.onSurfaceVariant,
     error: AppColors.error,
@@ -128,7 +132,7 @@ ThemeData appDarkTheme = ThemeData(
     secondary: AppColors.secondary,
     onSecondary: AppColors.onSecondary,
     surface: AppColors.darkSurface,
-    surfaceVariant: AppColors.darkSurfaceVariant,
+    surfaceContainerHighest: AppColors.darkSurfaceContainerHighest,
     onSurface: AppColors.darkOnSurface,
     onSurfaceVariant: AppColors.darkOnSurfaceVariant,
     error: AppColors.error,

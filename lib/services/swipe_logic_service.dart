@@ -1,209 +1,157 @@
 import '../models/photo_action.dart';
 import '../models/photo_model.dart';
-import 'swipe_storage_service.dart';
 import 'package:flutter/foundation.dart';
+import 'deck_manager.dart';
+import 'swipe_counter.dart';
+import 'action_history.dart';
 
 class SwipeLogicService {
-  int swipeCap;
-  int refillAmount;
-  int refillHours;
-  int deckSize;
-
-  int swipesLeft;
-  DateTime? lastSwipeDate;
-  DateTime? lastRefill;
-  final List<PhotoAction> completedActions = [];
-  final List<PhotoAction> undoStack = [];
-  PhotoActionType? pendingSwipe;
-  Map<String, String> swipeActions = {};
-
-  List<PhotoModel> _deck = [];
-  int deckStartIndex = 0;
-  bool _isDeckInitialized = false;
-  List<PhotoModel> _assets = [];
+  late final DeckManager _deckManager;
+  late final SwipeCounter _swipeCounter;
+  late final ActionHistory _actionHistory;
 
   SwipeLogicService({
     int? swipeCap,
-    this.refillAmount = 125,
-    this.refillHours = 5,
-    this.deckSize = 5,
+    int refillAmount = 125,
+    int refillHours = 5,
+    int deckSize = 5,
     int? swipesLeft,
-  }) : swipeCap = swipeCap ?? 50804,
-       swipesLeft = swipesLeft ?? 0;
+  }) {
+    _swipeCounter = SwipeCounter(
+      swipeCap: swipeCap,
+      refillAmount: refillAmount,
+      refillHours: refillHours,
+      swipesLeft: swipesLeft,
+    );
+    _actionHistory = ActionHistory();
+    _deckManager = DeckManager(
+      deckSize: deckSize,
+      swipeActions: _actionHistory.swipeActions,
+    );
+  }
 
   Future<void> loadState() async {
-    swipeActions = await SwipeStorageService.loadSwipeActions();
-    swipesLeft = await SwipeStorageService.loadSwipesLeft(swipeCap);
-    final lastSwipeDateStr = await SwipeStorageService.loadLastSwipeDate();
-    final lastRefillStr = await SwipeStorageService.loadLastRefill();
-    lastSwipeDate =
-        lastSwipeDateStr != null ? DateTime.tryParse(lastSwipeDateStr) : null;
-    lastRefill =
-        lastRefillStr != null ? DateTime.tryParse(lastRefillStr) : null;
+    await _actionHistory.loadState();
+    await _swipeCounter.loadState();
   }
 
   Future<void> saveState() async {
-    await SwipeStorageService.saveSwipeActions(swipeActions);
-    await SwipeStorageService.saveSwipesLeft(swipesLeft);
-    await SwipeStorageService.saveLastSwipeDate(
-      lastSwipeDate?.toIso8601String() ?? '',
-    );
-    await SwipeStorageService.saveLastRefill(
-      lastRefill?.toIso8601String() ?? '',
-    );
+    await _actionHistory.saveState();
+    await _swipeCounter.saveState();
   }
 
   void initializeDeck(List<PhotoModel> assets) {
-    if (_isDeckInitialized) return;
-    _assets = assets;
-    final filtered =
-        assets.where((a) => !swipeActions.containsKey(a.id)).toList();
-    _deck = filtered.take(deckSize).toList();
-    deckStartIndex = deckSize;
-    _isDeckInitialized = true;
+    _deckManager.initializeDeck(assets);
   }
 
-  List<PhotoModel> get deck => _deck;
+  List<PhotoModel> get deck => _deckManager.deck;
 
   void handleSwipe(PhotoAction action) {
-    debugPrint('handleSwipe: BEFORE deck=${_deck.map((p) => p.id).toList()}');
-    completedActions.add(action);
-    undoStack.add(action);
-    swipeActions[action.photo.id] = _actionTypeToString(action.action);
-    swipesLeft = (swipesLeft - 1).clamp(0, swipeCap);
-    lastSwipeDate = DateTime.now();
+    debugPrint(
+      'handleSwipe: BEFORE deck=${_deckManager.deck.map((p) => p.id).toList()}',
+    );
+
+    _actionHistory.addAction(action);
+    _swipeCounter.consumeSwipe();
+
     // Remove from deck
-    if (_deck.isNotEmpty && _deck.first.id == action.photo.id) {
-      _deck.removeAt(0);
+    if (_deckManager.deck.isNotEmpty &&
+        _deckManager.deck.first.id == action.photo.id) {
+      _deckManager.removeTopCard();
     } else {
       debugPrint(
-        'WARNING: Tried to swipe id=${action.photo.id} but deck.first=${_deck.isNotEmpty ? _deck.first.id : 'EMPTY'}',
+        'WARNING: Tried to swipe id=${action.photo.id} but deck.first=${_deckManager.deck.isNotEmpty ? _deckManager.deck.first.id : 'EMPTY'}',
       );
       assert(
-        _deck.isEmpty || _deck.first.id == action.photo.id,
+        _deckManager.deck.isEmpty ||
+            _deckManager.deck.first.id == action.photo.id,
         'Deck top does not match swiped id!',
       );
     }
-    // Refill deck with next unswiped photo, prevent duplicates
-    while (_assets.length > deckStartIndex) {
-      final next = _assets[deckStartIndex];
-      deckStartIndex++;
-      if (!swipeActions.containsKey(next.id) &&
-          !_deck.any((p) => p.id == next.id)) {
-        _deck.add(next);
-        break;
-      }
-    }
-    debugPrint('handleSwipe: AFTER deck=${_deck.map((p) => p.id).toList()}');
-    debugPrint('  swipeActions: $swipeActions');
+
+    // Refill deck
+    _deckManager.refillDeck();
+
     debugPrint(
-      '  completedActions: ${completedActions.map((a) => a.photo.id).toList()}',
+      'handleSwipe: AFTER deck=${_deckManager.deck.map((p) => p.id).toList()}',
+    );
+    debugPrint('  swipeActions: ${_actionHistory.swipeActions}');
+    debugPrint(
+      '  completedActions: ${_actionHistory.completedActions.map((a) => a.photo.id).toList()}',
     );
     saveState();
   }
 
   void undo() {
-    if (undoStack.isEmpty) return;
-    final lastAction = undoStack.removeLast();
-    completedActions.removeWhere((a) => a.photo.id == lastAction.photo.id);
-    swipeActions.remove(lastAction.photo.id);
-    swipesLeft = (swipesLeft + 1).clamp(0, swipeCap);
-    // Insert photo back at top of deck
-    _deck.insert(0, lastAction.photo);
-    saveState();
+    final lastAction = _actionHistory.undoLastAction();
+    if (lastAction != null) {
+      _swipeCounter.addSwipe();
+      // Insert photo back at top of deck
+      _deckManager.addCardToTop(lastAction.photo);
+      saveState();
+    }
   }
 
   void resetDeck() {
-    _deck = [];
-    deckStartIndex = 0;
-    _isDeckInitialized = false;
+    _deckManager.resetDeck();
   }
 
-  bool canSwipe() => swipesLeft > 0;
+  bool canSwipe() => _swipeCounter.canSwipe();
 
   void swipe(PhotoAction action) {
     handleSwipe(action);
   }
 
   void refillIfNeeded() {
-    final now = DateTime.now();
-    if (lastRefill == null) {
-      lastRefill = now;
-      saveState();
-      return;
-    }
-    final hoursSinceRefill = now.difference(lastRefill!).inHours;
-    if (swipesLeft < swipeCap && hoursSinceRefill >= refillHours) {
-      int refills = hoursSinceRefill ~/ refillHours;
-      swipesLeft = (swipesLeft + refillAmount * refills).clamp(0, swipeCap);
-      lastRefill = now;
-      saveState();
-    }
+    _swipeCounter.refillIfNeeded();
   }
 
-  int getSwipesLeft() => swipesLeft;
-  List<PhotoAction> getUndoStack() => List.unmodifiable(undoStack);
+  int getSwipesLeft() => _swipeCounter.getSwipesLeft();
+  List<PhotoAction> getUndoStack() => _actionHistory.getUndoStack();
   List<PhotoAction> getCompletedActions() =>
-      List.unmodifiable(completedActions);
-  Map<String, String> getSwipeActions() => Map.unmodifiable(swipeActions);
-
-  String _actionTypeToString(PhotoActionType type) {
-    switch (type) {
-      case PhotoActionType.delete:
-        return 'delete';
-      case PhotoActionType.keep:
-        return 'keep';
-      case PhotoActionType.sortLater:
-        return 'sort_later';
-    }
-  }
+      _actionHistory.getCompletedActions();
+  Map<String, String> getSwipeActions() => _actionHistory.getSwipeActions();
 
   // Handles swiping the top card in the deck
   void handleDeckSwipe(PhotoActionType type) {
     debugPrint(
-      'handleDeckSwipe: type=$type, deck BEFORE=${_deck.map((p) => p.id).toList()}',
+      'handleDeckSwipe: type=$type, deck BEFORE=${_deckManager.deck.map((p) => p.id).toList()}',
     );
-    if (_deck.isEmpty || !canSwipe()) return;
-    final photo = _deck.first;
+    if (_deckManager.deck.isEmpty || !canSwipe()) return;
+    final photo = _deckManager.deck.first;
     final action = PhotoAction(photo: photo, action: type);
     handleSwipe(action);
     debugPrint(
-      'handleDeckSwipe: type=$type, deck AFTER=${_deck.map((p) => p.id).toList()}',
+      'handleDeckSwipe: type=$type, deck AFTER=${_deckManager.deck.map((p) => p.id).toList()}',
     );
   }
 
   // Handles undoing the last swipe and restoring the photo to the deck
   void undoLastSwipe() {
-    if (undoStack.isEmpty) return;
-    final lastAction = undoStack.last;
     undo();
   }
 
   // Returns deleted actions for a given asset list
   List<PhotoAction> getDeletedActions(List<PhotoModel> assets) {
-    return assets
-        .where((a) => swipeActions[a.id] == 'delete')
-        .map((a) => PhotoAction(photo: a, action: PhotoActionType.delete))
-        .toList();
+    return _actionHistory.getDeletedActions(assets);
   }
 
   // Returns sort-later actions for a given asset list
   List<PhotoAction> getSortLaterActions(List<PhotoModel> assets) {
-    return assets
-        .where((a) => swipeActions[a.id] == 'sort_later')
-        .map((a) => PhotoAction(photo: a, action: PhotoActionType.sortLater))
-        .toList();
+    return _actionHistory.getSortLaterActions(assets);
   }
 
   // Returns the current top card in the deck, or null if empty
-  PhotoModel? get topCard => _deck.isNotEmpty ? _deck.first : null;
+  PhotoModel? get topCard => _deckManager.topCard;
 
   // Returns actions of a given type ('delete' or 'sort_later') using current PhotoModel from assets
   List<PhotoAction> getActionsForType(List<PhotoModel> assets, String type) {
-    return assets.where((a) => swipeActions[a.id] == type).map((a) {
-      final actionType =
-          type == 'delete' ? PhotoActionType.delete : PhotoActionType.sortLater;
-      return PhotoAction(photo: a, action: actionType);
-    }).toList();
+    return _actionHistory.getActionsForType(assets, type);
   }
+
+  // Getters for backward compatibility
+  int get swipesLeft => _swipeCounter.swipesLeft;
+  List<PhotoAction> get undoStack => _actionHistory.undoStack;
+  List<PhotoAction> get completedActions => _actionHistory.completedActions;
+  Map<String, String> get swipeActions => _actionHistory.swipeActions;
 }

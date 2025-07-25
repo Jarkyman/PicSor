@@ -1,28 +1,12 @@
 import 'package:flutter/material.dart';
 import 'screens/deleted_screen.dart';
 import 'screens/sort_later_screen.dart';
+import 'screens/stats_screen.dart';
+import 'screens/settings_screen.dart';
 import 'core/app_routes.dart';
 import 'models/photo_action.dart';
 import 'screens/splash_screen.dart';
 import 'core/theme.dart';
-
-class StatsScreen extends StatelessWidget {
-  const StatsScreen({super.key});
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Stats')),
-    body: const Center(child: Text('Stats coming soon')),
-  );
-}
-
-class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key});
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Settings')),
-    body: const Center(child: Text('Settings coming soon')),
-  );
-}
 
 class PicSorApp extends StatelessWidget {
   const PicSorApp({super.key});
