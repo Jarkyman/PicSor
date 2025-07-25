@@ -18,7 +18,9 @@ class AppColors {
   static const darkSurfaceVariant = Color(0xFF2A2D36);
   static const darkOnSurface = Color(0xFFF7F8FA);
   static const darkOnSurfaceVariant = Color(0xFFF7F8FA);
-  static const surfaceContainerHighest = Color(0xFFF5F5F5); // samme som surfaceVariant
+  static const surfaceContainerHighest = Color(
+    0xFFF5F5F5,
+  ); // samme som surfaceVariant
   static const darkSurfaceContainerHighest = Color(0xFF2A2D36);
 }
 
@@ -65,6 +67,7 @@ class AppTextStyles {
   static TextStyle button(BuildContext context) => TextStyle(
     fontSize: Scale.of(context, 18),
     fontWeight: FontWeight.w600,
+    color: Theme.of(context).colorScheme.onPrimary,
   );
 }
 
