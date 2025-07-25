@@ -2,13 +2,12 @@
 
 ## In Progress
 - [ ] **Fremtidige Refaktoreringer** - Potentielle forbedringer
-  - [ ] Tilføj unit tests for services
+  - [ ] Tilføj loading states og skeleton screens
 
 ## Pending
 - [ ] **Yderligere Optimeringer** - Valgfrie forbedringer
-  - [ ] Implementer persistent caching for GalleryService
-  - [ ] Tilføj loading states og skeleton screens
-  - [ ] Optimér memory usage for store billeder
+  - [ ] Implementer smart caching for GalleryService (kun seneste billeder, begrænset størrelse)
+  - [ ] Tilføj unit tests for services
 
 ## Completed
 - [x] **SwipeScreen Yderligere Opdeling** - Fuldt gennemført!
@@ -60,7 +59,7 @@
   - [x] Fjernet unused imports, fields, variables
   - [x] Fixet deprecated withOpacity
   - [x] Fixet unnecessary underscores
-  - [x] Reduceret issues fra 26 til 17
+  - [x] Reduceret issues fra 26 til 12
 
 ---
-*🎉 SwipeScreen er nu fuldt opdelt i mindre, fokuserede komponenter! Næste: Unit tests for services.* 
+*🎉 Alle store refaktoreringer er nu gennemført! Appen har betydeligt forbedret kodekvalitet og maintainability.* 
