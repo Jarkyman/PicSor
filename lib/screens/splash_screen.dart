@@ -1,15 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../services/gallery_service.dart';
-import '../services/swipe_logic_service.dart';
-import '../screens/swipe_screen.dart';
-import 'onboarding/welcome_screen.dart';
-import 'onboarding/photo_permission_screen.dart';
-import 'onboarding/notification_permission_screen.dart';
-import 'onboarding/privacy_policy_screen.dart';
-import 'onboarding/intro_screen.dart';
-import 'onboarding/bonus_swipes_screen.dart';
-import '../services/swipe_storage_service.dart';
+import '../services/onboarding_manager.dart';
+import '../services/app_initializer.dart';
 import '../core/theme.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -20,98 +11,53 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  late GalleryService _galleryService;
-  late SwipeLogicService _swipeLogicService;
-  bool _showOnboarding = false;
-  int _onboardingStep = 0;
+  late OnboardingManager _onboardingManager;
+  late AppInitializer _appInitializer;
   bool _loading = true;
-  List<Widget> get _onboardingScreens => [
-    WelcomeScreen(onContinue: _nextOnboarding),
-    PhotoPermissionScreen(onNext: _nextOnboarding),
-    NotificationPermissionScreen(onNext: _nextOnboarding),
-    PrivacyPolicyScreen(onAccept: _nextOnboarding),
-    IntroScreen(onContinue: _nextOnboarding),
-    BonusSwipesScreen(onClaimed: _finishOnboarding),
-  ];
 
   @override
   void initState() {
     super.initState();
-    _galleryService = GalleryService();
-    _swipeLogicService = SwipeLogicService();
-    _checkOnboarding();
+    _onboardingManager = OnboardingManager();
+    _appInitializer = AppInitializer();
+    _initializeApp();
   }
 
-  Future<void> _checkOnboarding() async {
-    final prefs = await SharedPreferences.getInstance();
-    final done = prefs.getBool('onboarding_done') ?? false;
-    if (!done) {
+  Future<void> _initializeApp() async {
+    await _onboardingManager.checkOnboarding();
+
+    if (_onboardingManager.showOnboarding) {
       setState(() {
-        _showOnboarding = true;
         _loading = false;
       });
     } else {
-      _loadAll();
+      await _loadAppData();
+    }
+  }
+
+  Future<void> _loadAppData() async {
+    try {
+      await _appInitializer.loadState();
+      final photos = await _appInitializer.loadGalleryAssets();
+      _appInitializer.initializeDeck(photos);
+      await _appInitializer.navigateToSwipeScreen(context, photos);
+    } catch (e) {
+      _appInitializer.showErrorDialog(context, e.toString());
     }
   }
 
   void _nextOnboarding() {
     setState(() {
-      _onboardingStep++;
+      _onboardingManager.nextStep();
     });
   }
 
   Future<void> _finishOnboarding() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('onboarding_done', true);
-    // Hvis vi lige har været på bonus-siden, giv 1000 swipes
-    await SwipeStorageService.saveSwipesLeft(1000);
+    await _onboardingManager.finishOnboarding();
     setState(() {
-      _showOnboarding = false;
       _loading = true;
     });
-    _loadAll();
-  }
-
-  Future<void> _loadAll() async {
-    try {
-      await _swipeLogicService.loadState();
-      final photos = await _galleryService.fetchGalleryAssets();
-      _swipeLogicService.initializeDeck(photos);
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder:
-                (_) => SwipeScreen(
-                  swipeLogicService: _swipeLogicService,
-                  assets: photos,
-                ),
-          ),
-        );
-      }
-    } catch (e) {
-      // Optionally show error UI
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder:
-              (context) => AlertDialog(
-                title: Text('Error', style: AppTextStyles.title(context)),
-                content: Text(
-                  'Failed to load app data: $e',
-                  style: AppTextStyles.body(context),
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: Text('OK', style: AppTextStyles.button(context)),
-                  ),
-                ],
-              ),
-        );
-      }
-    }
+    await _loadAppData();
   }
 
   @override
@@ -139,9 +85,15 @@ class _SplashScreenState extends State<SplashScreen> {
         ),
       );
     }
-    if (_showOnboarding) {
-      return _onboardingScreens[_onboardingStep];
+
+    if (_onboardingManager.showOnboarding) {
+      final onboardingScreens = _onboardingManager.getOnboardingScreens(
+        onNext: _nextOnboarding,
+        onFinish: _finishOnboarding,
+      );
+      return onboardingScreens[_onboardingManager.onboardingStep];
     }
+
     // Should never reach here
     return const SizedBox.shrink();
   }

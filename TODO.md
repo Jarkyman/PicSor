@@ -1,23 +1,37 @@
 # TODO List - Refaktorering
 
 ## In Progress
-- [ ] **SplashScreen Refaktorering** - Del op i mindre komponenter
-  - [ ] Opret `OnboardingManager` til onboarding flow
-  - [ ] Opret `AppInitializer` til app startup
-  - [ ] Opdater SplashScreen til at bruge nye managers
+- [ ] **Fremtidige Refaktoreringer** - Potentielle forbedringer
+  - [ ] Opdel SwipeScreen yderligere hvis nødvendigt
+  - [ ] Forbedre error handling i hele appen
+  - [ ] Tilføj unit tests for services
 
 ## Pending
-- [ ] **App.dart Cleanup** - Flyt placeholder screens
-  - [ ] Opret `lib/screens/stats_screen.dart` (placeholder)
-  - [ ] Opret `lib/screens/settings_screen.dart` (placeholder)
-  - [ ] Fjern placeholder screens fra app.dart
-
-- [ ] **GalleryService Forbedringer** - Tilføj caching og error handling
-  - [ ] Tilføj caching for assets
-  - [ ] Forbedret error handling
-  - [ ] Tilføj retry mekanisme
+- [ ] **Yderligere Optimeringer** - Valgfrie forbedringer
+  - [ ] Implementer persistent caching for GalleryService
+  - [ ] Tilføj loading states og skeleton screens
+  - [ ] Optimér memory usage for store billeder
 
 ## Completed
+- [x] **GalleryService Forbedringer** - Fuldt gennemført!
+  - [x] Tilføjet caching for assets (5 minutter validitet)
+  - [x] Forbedret error handling med custom exceptions
+  - [x] Tilføjet retry mekanisme med exponential backoff
+  - [x] Graceful handling af individuelle asset fejl
+  - [x] Cache management metoder
+
+- [x] **App.dart Cleanup** - Fuldt gennemført!
+  - [x] Oprettet `lib/screens/stats_screen.dart` (placeholder)
+  - [x] Oprettet `lib/screens/settings_screen.dart` (placeholder)
+  - [x] Fjernet placeholder screens fra app.dart
+  - [x] Forbedret filstruktur og separation
+
+- [x] **SplashScreen Refaktorering** - Fuldt gennemført!
+  - [x] Oprettet `OnboardingManager` til onboarding flow
+  - [x] Oprettet `AppInitializer` til app startup
+  - [x] Opdateret SplashScreen til at bruge nye managers
+  - [x] Reduceret kompleksitet og forbedret separation of concerns
+
 - [x] **SwipeLogicService Refaktorering** - Fuldt gennemført!
   - [x] Oprettet `DeckManager` service til deck logik
   - [x] Oprettet `SwipeCounter` service til swipe limits og refill
@@ -37,4 +51,4 @@
   - [x] Reduceret issues fra 26 til 17
 
 ---
-*Refaktorering plan: SwipeLogicService ✅, nu SplashScreen, derefter App.dart cleanup, og til sidst GalleryService forbedringer.* 
+*🎉 Alle planlagte refaktoreringer er nu gennemført! Appen har betydeligt forbedret kodekvalitet, separation of concerns, og maintainability.* 
