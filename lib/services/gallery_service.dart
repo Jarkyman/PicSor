@@ -2,6 +2,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_manager/photo_manager.dart';
 import '../models/photo_model.dart';
 import 'package:flutter/foundation.dart';
+import 'error_handler_service.dart';
 
 class GalleryService {
   static const int _maxRetries = 3;
@@ -24,7 +25,7 @@ class GalleryService {
   }
 
   Future<List<PhotoModel>> _fetchWithRetry(Set<String>? excludeIds) async {
-    Exception? lastException;
+    AppError? lastError;
 
     for (int attempt = 1; attempt <= _maxRetries; attempt++) {
       try {
@@ -39,7 +40,7 @@ class GalleryService {
 
         return _getFilteredAssets(assets, excludeIds);
       } catch (e) {
-        lastException = e is Exception ? e : Exception(e.toString());
+        lastError = _createAppError(e);
         debugPrint('GalleryService: Attempt $attempt failed: $e');
 
         if (attempt < _maxRetries) {
@@ -48,9 +49,12 @@ class GalleryService {
       }
     }
 
-    throw GalleryServiceException(
-      'Failed to fetch gallery assets after $_maxRetries attempts',
-      lastException,
+    throw AppError(
+      message: 'Failed to fetch gallery assets after $_maxRetries attempts',
+      type: ErrorType.gallery,
+      originalException: lastError?.originalException,
+      userFriendlyMessage:
+          'Unable to load your photos. Please check permissions and try again.',
     );
   }
 
@@ -58,7 +62,12 @@ class GalleryService {
     // Request permissions with better error handling
     final permissionStatus = await _requestPermissions();
     if (!permissionStatus) {
-      throw GalleryServiceException('Photo access permission denied');
+      throw AppError(
+        message: 'Photo access permission denied',
+        type: ErrorType.permission,
+        userFriendlyMessage:
+            'Photo access is required. Please grant permission in your device settings.',
+      );
     }
 
     // Get "All" asset path for images only
@@ -74,14 +83,22 @@ class GalleryService {
     );
 
     if (paths.isEmpty) {
-      throw GalleryServiceException('No albums found');
+      throw AppError(
+        message: 'No albums found',
+        type: ErrorType.gallery,
+        userFriendlyMessage: 'No photo albums found on your device.',
+      );
     }
 
     final allPath = paths.first;
     final assets = await allPath.getAssetListPaged(page: 0, size: 1000);
 
     if (assets.isEmpty) {
-      throw GalleryServiceException('No images found');
+      throw AppError(
+        message: 'No images found',
+        type: ErrorType.gallery,
+        userFriendlyMessage: 'No photos found in your gallery.',
+      );
     }
 
     // Convert to PhotoModel with error handling for individual assets
@@ -107,7 +124,11 @@ class GalleryService {
     }
 
     if (photoModels.isEmpty) {
-      throw GalleryServiceException('No valid images could be processed');
+      throw AppError(
+        message: 'No valid images could be processed',
+        type: ErrorType.gallery,
+        userFriendlyMessage: 'Unable to process photos. Please try again.',
+      );
     }
 
     return photoModels;
@@ -128,6 +149,25 @@ class GalleryService {
       debugPrint('GalleryService: Permission request failed: $e');
       return false;
     }
+  }
+
+  AppError _createAppError(dynamic error) {
+    if (error is AppError) {
+      return error;
+    }
+
+    String message = error.toString();
+    Exception? originalException;
+
+    if (error is Exception) {
+      originalException = error;
+    }
+
+    return AppError(
+      message: message,
+      type: ErrorType.gallery,
+      originalException: originalException,
+    );
   }
 
   List<PhotoModel> _getFilteredAssets(
@@ -155,19 +195,4 @@ class GalleryService {
 
   int get cachedAssetCount => _cachedAssets?.length ?? 0;
   bool get hasCachedData => _cachedAssets != null;
-}
-
-class GalleryServiceException implements Exception {
-  final String message;
-  final Exception? originalException;
-
-  GalleryServiceException(this.message, [this.originalException]);
-
-  @override
-  String toString() {
-    if (originalException != null) {
-      return 'GalleryServiceException: $message (Original: $originalException)';
-    }
-    return 'GalleryServiceException: $message';
-  }
 }

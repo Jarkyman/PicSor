@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import '../models/photo_model.dart';
 import '../screens/swipe_screen.dart';
-import '../core/theme.dart';
 import 'gallery_service.dart';
 import 'swipe_logic_service.dart';
+import 'error_handler_service.dart';
 
 class AppInitializer {
   late final GalleryService _galleryService;
   late final SwipeLogicService _swipeLogicService;
+  final ErrorHandlerService _errorHandler = ErrorHandlerService();
 
   AppInitializer() {
     _galleryService = GalleryService();
@@ -45,24 +46,23 @@ class AppInitializer {
   }
 
   void showErrorDialog(BuildContext context, String error) {
-    if (context.mounted) {
-      showDialog(
-        context: context,
-        builder:
-            (context) => AlertDialog(
-              title: Text('Error', style: AppTextStyles.title(context)),
-              content: Text(
-                'Failed to load app data: $error',
-                style: AppTextStyles.body(context),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text('OK', style: AppTextStyles.button(context)),
-                ),
-              ],
-            ),
-      );
+    _errorHandler.handleError(
+      context,
+      error,
+      type: ErrorType.gallery,
+      userFriendlyMessage: 'Failed to load app data. Please try again.',
+      onRetry: () => _retryLoadAppData(context),
+    );
+  }
+
+  Future<void> _retryLoadAppData(BuildContext context) async {
+    try {
+      await loadState();
+      final photos = await loadGalleryAssets();
+      initializeDeck(photos);
+      await navigateToSwipeScreen(context, photos);
+    } catch (e) {
+      showErrorDialog(context, e.toString());
     }
   }
 
