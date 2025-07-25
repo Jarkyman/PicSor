@@ -175,7 +175,6 @@ class SwipeLogicService {
   // Handles undoing the last swipe and restoring the photo to the deck
   void undoLastSwipe() {
     if (undoStack.isEmpty) return;
-    final lastAction = undoStack.last;
     undo();
   }
 

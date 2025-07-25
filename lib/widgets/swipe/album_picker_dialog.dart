@@ -74,7 +74,7 @@ class AlbumPickerDialog extends StatelessWidget {
                     padding: EdgeInsets.only(bottom: AppSpacing.lg),
                     itemCount: albumInfos.length,
                     separatorBuilder:
-                        (_, __) => SizedBox(height: AppSpacing.lg),
+                        (context, index) => SizedBox(height: AppSpacing.lg),
                     itemBuilder: (context, i) {
                       final info = albumInfos[i];
                       return Row(

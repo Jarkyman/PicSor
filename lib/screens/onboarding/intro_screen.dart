@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../core/theme.dart';
 import '../../widgets/onboarding/onboarding_icon.dart';
 import '../../widgets/onboarding/onboarding_title.dart';
-import '../../widgets/onboarding/onboarding_body.dart';
 import '../../widgets/onboarding/onboarding_button_row.dart';
 
 class IntroScreen extends StatelessWidget {

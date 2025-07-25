@@ -22,11 +22,9 @@ class SwipeDeck extends StatefulWidget {
 
 class _SwipeDeckState extends State<SwipeDeck> with TickerProviderStateMixin {
   late AnimationController _swipeController;
-  late Animation<Offset> _swipeAnimation;
   PhotoActionType? _pendingSwipe;
   bool _isAnimatingOut = false;
   Offset _dragOffset = Offset.zero;
-  Offset _swipeEndOffset = Offset.zero;
   bool _isDragging = false;
   late AnimationController _cardAnimController;
   late Animation<Offset> _cardAnim;
@@ -47,7 +45,6 @@ class _SwipeDeckState extends State<SwipeDeck> with TickerProviderStateMixin {
             _isAnimatingOut = false;
             _pendingSwipe = null;
             _dragOffset = Offset.zero;
-            _swipeEndOffset = Offset.zero;
           });
         }
       }
@@ -71,27 +68,9 @@ class _SwipeDeckState extends State<SwipeDeck> with TickerProviderStateMixin {
 
   void _triggerDeckSwipe(PhotoActionType type) {
     if (_isAnimatingOut || widget.deck.isEmpty) return;
-    Offset endOffset;
-    switch (type) {
-      case PhotoActionType.delete:
-        endOffset = const Offset(-2, 0);
-        break;
-      case PhotoActionType.keep:
-        endOffset = const Offset(2, 0);
-        break;
-      case PhotoActionType.sortLater:
-        endOffset = const Offset(0, -2);
-        break;
-    }
     setState(() {
       _isAnimatingOut = true;
       _pendingSwipe = type;
-      _swipeAnimation = Tween<Offset>(
-        begin: Offset.zero,
-        end: endOffset,
-      ).animate(
-        CurvedAnimation(parent: _swipeController, curve: Curves.easeOut),
-      );
     });
     _swipeController.forward(from: 0);
   }
@@ -142,7 +121,6 @@ class _SwipeDeckState extends State<SwipeDeck> with TickerProviderStateMixin {
     if (type != null) {
       setState(() {
         _isDragging = false;
-        _swipeEndOffset = endOffset;
         _dragDirection = null;
       });
       _cardAnim = Tween<Offset>(begin: _dragOffset, end: endOffset).animate(
@@ -154,7 +132,6 @@ class _SwipeDeckState extends State<SwipeDeck> with TickerProviderStateMixin {
     } else {
       setState(() {
         _isDragging = false;
-        _swipeEndOffset = Offset.zero;
         _dragDirection = null;
       });
       _cardAnim = Tween<Offset>(begin: _dragOffset, end: Offset.zero).animate(
@@ -170,7 +147,7 @@ class _SwipeDeckState extends State<SwipeDeck> with TickerProviderStateMixin {
     if (widget.deck.isEmpty) {
       return const SizedBox.shrink();
     }
-    final topPhoto = widget.deck.first;
+
     final liveLabel = getLiveLabel(_dragOffset, _isDragging);
     final liveLabelColor = getLiveLabelColor(_dragOffset, _isDragging);
     final showLiveLabel = shouldShowLiveLabel(_dragOffset, _isDragging);
@@ -209,7 +186,7 @@ class _SwipeDeckState extends State<SwipeDeck> with TickerProviderStateMixin {
                 shadows: [
                   Shadow(
                     blurRadius: 24,
-                    color: liveLabelColor.withOpacity(0.8),
+                    color: liveLabelColor.withValues(alpha: 0.8),
                     offset: Offset(0, 0),
                   ),
                 ],
