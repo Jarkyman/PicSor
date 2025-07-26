@@ -1,12 +1,88 @@
 # TODO List - Refaktorering
 
-## In Progress
-- [ ] **Fremtidige Refaktoreringer** - Potentielle forbedringer
-  - [ ] Implementer smart caching for GalleryService (kun seneste billeder, begrænset størrelse)
-
 ## Pending
 - [ ] **Yderligere Optimeringer** - Valgfrie forbedringer
   - [ ] Tilføj unit tests for services
+  - [ ] Implementer smart caching for GalleryService (kun seneste billeder, begrænset størrelse)
+
+## Features / Tasks
+- [ ] **App Icon**
+  - [ ] Design og implementer app ikon for PicSor
+  - [ ] Tilføj ikon i forskellige størrelser (iOS og Android)
+  - [ ] Test ikon på begge platforme
+
+- [ ] **App Description**
+  - [ ] Skriv app beskrivelse til App Store og Google Play
+  - [ ] Inkluder key features og benefits
+  - [ ] Optimér for SEO og discoverability
+
+- [ ] **Launch Screen**
+  - [ ] Design launch screen (ikke splash screen)
+  - [ ] Implementer for iOS (LaunchScreen.storyboard)
+  - [ ] Implementer for Android (launch_background.xml)
+  - [ ] Sikr at launch screen matcher app branding
+
+- [ ] **App Ikon til Welcome Screen**
+  - [ ] Tilføj app ikon til welcome/onboarding screens
+  - [ ] Placer ikon øverst på hver onboarding screen
+  - [ ] Sikr konsistent design på tværs af screens
+
+- [ ] **Delete Screen**
+  - [ ] Vis alle soft-deleted billeder
+  - [ ] Mulighed for at gendanne eller slette permanent
+  - [ ] Select all / multi-select handling
+  - [ ] Bekræftelsesdialog ved permanent sletning
+  - [ ] Vis antal slettede billeder og samlet pladsbesparelse
+
+- [ ] **Sort Later Screen**
+  - [ ] Vis alle billeder markeret til "Sort later"
+  - [ ] Mulighed for at flytte til keep/delete direkte fra listen
+  - [ ] Mulighed for at åbne billede i fuld skærm
+  - [ ] Vis antal billeder i sort later
+
+- [ ] **Settings Screen**
+  - [ ] Dark mode toggle
+  - [ ] Notifikationer on/off
+  - [ ] Sprog (kun engelsk, men vis info)
+  - [ ] Om appen/info
+  - [ ] Kontakt/support
+  - [ ] Restore purchases
+  - [ ] Privacy policy
+  - [ ] App version
+
+- [ ] **Stats Screen**
+  - [ ] Vis GB slettet
+  - [ ] Vis % af galleri swipet
+  - [ ] Vis GB "sparet"
+  - [ ] Vis antal billeder swipet, slettet, beholdt, sort later
+  - [ ] Vis daglig/ugentlig statistik
+
+- [ ] **Reklamer i Swipe Screen**
+  - [ ] Banner ad kort mellem billeder (fx hver 10-20 swipes)
+  - [ ] Brug AdMob banner format
+  - [ ] Skal ikke forstyrre swipe flow
+
+- [ ] **Reward Ad for ekstra swipes**
+  - [ ] Mulighed for at se video for at få 50 ekstra swipes
+  - [ ] Brug AdMob rewarded ad
+  - [ ] Vis dialog når swipes er lave
+  - [ ] Opdater swipe counter efter reward
+
+- [ ] **Køb Premium**
+  - [ ] Fjern alle reklamer
+  - [ ] Uendelige swipes
+  - [ ] Implementer køb via in-app purchase
+  - [ ] Vis "Go Premium" call to action i settings og swipe screen
+
+- [ ] **Daglig Swipe Bonus**
+  - [ ] Mulighed for at claime daglig bonus (fx 600 swipes)
+  - [ ] Bonus kan kun claimes én gang pr. dag
+  - [ ] Reset bonus efter claim
+  - [ ] Vis dialog eller banner når bonus er klar
+
+- [ ] **Ændre Share Image Text**
+  - [ ] Opdater tekst der deles med billede (fx "9 years ago" eller lignende)
+  - [ ] Brug dynamisk tekst baseret på billedets alder
 
 ## Completed
 - [x] **Loading States og Skeleton Screens** - Fuldt gennemført!
@@ -69,6 +145,3 @@
   - [x] Fixet deprecated withOpacity
   - [x] Fixet unnecessary underscores
   - [x] Reduceret issues fra 26 til 12
-
----
-*🎉 Alle store refaktoreringer er nu gennemført! Appen har betydeligt forbedret kodekvalitet og maintainability.* 
