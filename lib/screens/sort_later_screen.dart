@@ -117,6 +117,7 @@ class _SortLaterScreenState extends State<SortLaterScreen> {
       floatingActionButton:
           _selectedIds.isNotEmpty
               ? FloatingActionButton.extended(
+                heroTag: 'sort_later_fab',
                 onPressed: _returnSelected,
                 icon: Icon(Icons.keyboard_return, size: Scale.of(context, 24)),
                 label: Text('Return Selected to Swipe Queue'),

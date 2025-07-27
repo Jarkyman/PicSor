@@ -28,7 +28,7 @@ class OnboardingManager {
   Future<void> finishOnboarding() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('onboarding_done', true);
-    // Hvis vi lige har været på bonus-siden, giv 1000 swipes
+    // If we just visited the bonus page, give 1000 swipes
     await SwipeStorageService.saveSwipesLeft(1000);
     _showOnboarding = false;
   }

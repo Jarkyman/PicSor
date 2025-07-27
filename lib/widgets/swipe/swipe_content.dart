@@ -8,13 +8,14 @@ import '../../widgets/swipe/swipe_deck.dart';
 import '../../widgets/swipe/swipe_action_button_group.dart';
 import '../skeleton/skeleton_swipe_screen.dart';
 
-class SwipeContent extends StatelessWidget {
+class SwipeContent extends StatefulWidget {
   final List<PhotoModel> assets;
   final SwipeLogicService swipeLogicService;
   final bool timeCheatDetected;
   final Function(PhotoModel) onPhotoUpdated;
   final bool isLoading;
   final VoidCallback? onSwipe; // Add callback for swipe events
+  final VoidCallback? onUndo; // Add callback for undo events
 
   const SwipeContent({
     super.key,
@@ -24,36 +25,43 @@ class SwipeContent extends StatelessWidget {
     required this.onPhotoUpdated,
     this.isLoading = false,
     this.onSwipe,
+    this.onUndo,
   });
 
   @override
+  SwipeContentState createState() => SwipeContentState();
+}
+
+class SwipeContentState extends State<SwipeContent> {
+  int _forceRebuild = 0;
+  final GlobalKey<SwipeDeckState> _swipeDeckKey = GlobalKey<SwipeDeckState>();
+
+  // Method to trigger undo animation
+  void triggerUndoAnimation() {
+    _swipeDeckKey.currentState?.triggerUndoAnimation();
+    widget.onUndo?.call();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (isLoading) {
+    debugPrint(
+      'SwipeContent build: deck length = ${widget.swipeLogicService.deck.length}, forceRebuild = $_forceRebuild',
+    );
+
+    if (widget.isLoading) {
       return const SkeletonSwipeScreen();
     }
 
-    if (assets.isEmpty) {
-      return Center(
-        child: Text('No media found.', style: AppTextStyles.body(context)),
-      );
+    if (widget.assets.isEmpty) {
+      return const Center(child: Text('No photos found'));
     }
 
-    if (swipeLogicService.deck.isEmpty) {
-      return Center(
-        child: Text(
-          'All images already swiped.',
-          style: AppTextStyles.body(context),
-        ),
-      );
+    if (widget.swipeLogicService.deck.isEmpty) {
+      return const Center(child: Text('No more photos to swipe'));
     }
 
-    if (timeCheatDetected) {
-      return Center(
-        child: Text(
-          'Swiping is blocked due to time manipulation.',
-          style: AppTextStyles.body(context),
-        ),
-      );
+    if (widget.timeCheatDetected) {
+      return const Center(child: Text('Time cheat detected'));
     }
 
     return Stack(
@@ -64,16 +72,25 @@ class SwipeContent extends StatelessWidget {
 
         // Swipe card deck
         SwipeDeck(
-          deck: swipeLogicService.deck,
-          isEnabled: swipeLogicService.canSwipe() && !timeCheatDetected,
+          key: _swipeDeckKey,
+          deck: widget.swipeLogicService.deck,
+          isEnabled:
+              widget.swipeLogicService.canSwipe() && !widget.timeCheatDetected,
           onSwipe: (type) {
-            swipeLogicService.handleDeckSwipe(type);
-            onSwipe?.call(); // Trigger parent rebuild
+            debugPrint('SwipeContent: Swipe detected, type = $type');
+            // Deck is updated first AFTER animation is complete (in SwipeDeck)
+            widget.swipeLogicService.handleDeckSwipe(type);
+            widget.onSwipe?.call(); // Trigger parent rebuild
+          },
+          onUndo: () {
+            debugPrint('SwipeContent: Undo detected, triggering animation...');
+            _swipeDeckKey.currentState?.triggerUndoAnimation();
+            widget.onUndo?.call();
           },
         ),
 
         // Action button group
-        if (swipeLogicService.deck.isNotEmpty)
+        if (widget.swipeLogicService.deck.isNotEmpty)
           Positioned(
             bottom: 24,
             right: 16,
@@ -86,18 +103,20 @@ class SwipeContent extends StatelessWidget {
   Widget _buildActionButtonGroup(BuildContext context) {
     return FutureBuilder<bool>(
       future: PhotoActionService.isSystemFavorite(
-        swipeLogicService.topCard!.id,
+        widget.swipeLogicService.topCard!.id,
       ),
       builder: (context, snapshot) {
         final isFavorite = snapshot.data ?? false;
         return SwipeActionButtonGroup(
-          photo: swipeLogicService.topCard!,
+          photo: widget.swipeLogicService.topCard!,
           isFavorite: isFavorite,
-          onFavoriteToggled: onPhotoUpdated,
+          onFavoriteToggled: widget.onPhotoUpdated,
           isInAlbum: false, // TODO: implement real check if needed
           onAddToAlbum: () => _handleAddToAlbum(context),
           onShare:
-              () => PhotoActionService.sharePhoto(swipeLogicService.topCard!),
+              () => PhotoActionService.sharePhoto(
+                widget.swipeLogicService.topCard!,
+              ),
           showSnackBar:
               (message, {action}) =>
                   _showSnackBar(context, message, action: action),
@@ -109,7 +128,7 @@ class SwipeContent extends StatelessWidget {
   Future<void> _handleAddToAlbum(BuildContext context) async {
     await AlbumHandlerService.handleAddToAlbum(
       context,
-      swipeLogicService.topCard!,
+      widget.swipeLogicService.topCard!,
       (message) => _showSnackBar(context, message),
     );
   }

@@ -8,22 +8,28 @@ import '../widgets/dialogs.dart';
 class SwipeScreen extends StatefulWidget {
   final SwipeLogicService swipeLogicService;
   final List<PhotoModel> assets;
+  final VoidCallback? onStateChanged;
+  final VoidCallback? onUndo;
 
   const SwipeScreen({
     super.key,
     required this.swipeLogicService,
     required this.assets,
+    this.onStateChanged,
+    this.onUndo,
   });
 
   @override
-  State<SwipeScreen> createState() => _SwipeScreenState();
+  SwipeScreenState createState() => SwipeScreenState();
 }
 
-class _SwipeScreenState extends State<SwipeScreen>
+class SwipeScreenState extends State<SwipeScreen>
     with TickerProviderStateMixin, WidgetsBindingObserver {
   late SwipeLogicService _swipeLogicService;
   final bool _timeCheatDetected = false;
   bool _isLoading = true;
+  final GlobalKey<SwipeContentState> _swipeContentKey =
+      GlobalKey<SwipeContentState>();
 
   @override
   void initState() {
@@ -64,6 +70,14 @@ class _SwipeScreenState extends State<SwipeScreen>
     setState(() {
       _swipeLogicService.undoLastSwipe();
     });
+    // Trigger undo animation on SwipeContent
+    _swipeContentKey.currentState?.triggerUndoAnimation();
+    widget.onUndo?.call();
+  }
+
+  // Method to trigger undo animation from parent
+  void triggerUndoAnimation() {
+    _swipeContentKey.currentState?.triggerUndoAnimation();
   }
 
   void _handlePhotoUpdated(PhotoModel updatedPhoto) {
@@ -84,11 +98,6 @@ class _SwipeScreenState extends State<SwipeScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: SwipeAppBar(
-        swipeLogicService: _swipeLogicService,
-        assets: widget.assets,
-        onUndo: _handleUndo,
-      ),
       body: SafeArea(
         child: Builder(
           builder: (context) {
@@ -99,12 +108,14 @@ class _SwipeScreenState extends State<SwipeScreen>
             }
 
             return SwipeContent(
+              key: _swipeContentKey,
               assets: widget.assets,
               swipeLogicService: _swipeLogicService,
               timeCheatDetected: _timeCheatDetected,
               onPhotoUpdated: _handlePhotoUpdated,
               isLoading: _isLoading,
-              onSwipe: () => setState(() {}), // Trigger rebuild when swiping
+              onSwipe: widget.onStateChanged,
+              onUndo: widget.onUndo,
             );
           },
         ),

@@ -136,6 +136,7 @@ class _DeletedScreenState extends State<DeletedScreen> {
       floatingActionButton:
           _selectedIds.isNotEmpty && !_deleting
               ? FloatingActionButton.extended(
+                heroTag: 'deleted_fab',
                 onPressed: _deleteSelected,
                 icon: Icon(Icons.delete, size: Scale.of(context, 24)),
                 label: Text('Delete Selected'),
