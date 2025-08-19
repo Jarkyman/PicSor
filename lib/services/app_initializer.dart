@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/photo_model.dart';
-import '../screens/swipe_screen.dart';
+import '../screens/main_navigation_screen.dart';
 import 'gallery_service.dart';
 import 'swipe_logic_service.dart';
 import 'error_handler_service.dart';
@@ -36,7 +36,7 @@ class AppInitializer {
         context,
         MaterialPageRoute(
           builder:
-              (_) => SwipeScreen(
+              (_) => MainNavigationScreen(
                 swipeLogicService: _swipeLogicService,
                 assets: assets,
               ),

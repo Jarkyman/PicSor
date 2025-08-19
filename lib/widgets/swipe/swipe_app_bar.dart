@@ -35,31 +35,6 @@ class SwipeAppBar extends StatelessWidget implements PreferredSizeWidget {
           tooltip: 'Undo',
           onPressed: swipeLogicService.undoStack.isNotEmpty ? onUndo : null,
         ),
-        IconButton(
-          icon: Icon(Icons.delete_outline, size: Scale.of(context, 24)),
-          tooltip: 'Deleted',
-          onPressed: () {
-            Navigator.pushNamed(
-              context,
-              AppRoutes.deleted,
-              arguments: swipeLogicService.getActionsForType(assets, 'delete'),
-            );
-          },
-        ),
-        IconButton(
-          icon: Icon(Icons.watch_later_outlined, size: Scale.of(context, 24)),
-          tooltip: 'Sort Later',
-          onPressed: () {
-            Navigator.pushNamed(
-              context,
-              AppRoutes.sortLater,
-              arguments: swipeLogicService.getActionsForType(
-                assets,
-                'sort_later',
-              ),
-            );
-          },
-        ),
       ],
     );
   }

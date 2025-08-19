@@ -13,7 +13,10 @@ class GalleryService {
   DateTime? _lastCacheTime;
   static const Duration _cacheValidDuration = Duration(minutes: 5);
 
-  Future<List<PhotoModel>> fetchGalleryAssets({Set<String>? excludeIds}) async {
+  Future<List<PhotoModel>> fetchGalleryAssets({
+    Set<String>? excludeIds,
+    Function(int)? onProgress,
+  }) async {
     // Check cache first
     if (_isCacheValid()) {
       debugPrint('GalleryService: Using cached assets');
@@ -21,10 +24,13 @@ class GalleryService {
     }
 
     // Fetch fresh data with retry mechanism
-    return await _fetchWithRetry(excludeIds);
+    return await _fetchWithRetry(excludeIds, onProgress: onProgress);
   }
 
-  Future<List<PhotoModel>> _fetchWithRetry(Set<String>? excludeIds) async {
+  Future<List<PhotoModel>> _fetchWithRetry(
+    Set<String>? excludeIds, {
+    Function(int)? onProgress,
+  }) async {
     AppError? lastError;
 
     for (int attempt = 1; attempt <= _maxRetries; attempt++) {
@@ -32,7 +38,7 @@ class GalleryService {
         debugPrint(
           'GalleryService: Fetching assets (attempt $attempt/$_maxRetries)',
         );
-        final assets = await _fetchAssetsFromGallery();
+        final assets = await _fetchAssetsFromGallery(onProgress: onProgress);
 
         // Cache the results
         _cachedAssets = assets;
@@ -58,7 +64,9 @@ class GalleryService {
     );
   }
 
-  Future<List<PhotoModel>> _fetchAssetsFromGallery() async {
+  Future<List<PhotoModel>> _fetchAssetsFromGallery({
+    Function(int)? onProgress,
+  }) async {
     // Request permissions with better error handling
     final permissionStatus = await _requestPermissions();
     if (!permissionStatus) {
@@ -91,7 +99,10 @@ class GalleryService {
     }
 
     final allPath = paths.first;
-    final assets = await allPath.getAssetListPaged(page: 0, size: 1000);
+    final assets = await allPath.getAssetListPaged(
+      page: 0,
+      size: 100000,
+    ); // Load all photos (very large number)
 
     if (assets.isEmpty) {
       throw AppError(
@@ -101,22 +112,25 @@ class GalleryService {
       );
     }
 
-    // Convert to PhotoModel with error handling for individual assets
+    // Convert to PhotoModel with error handling for individual assets (without thumbnails)
     final List<PhotoModel> photoModels = [];
-    for (final asset in assets) {
+    for (int i = 0; i < assets.length; i++) {
+      final asset = assets[i];
       try {
-        final thumb = await asset.thumbnailDataWithSize(
-          const ThumbnailSize(400, 400),
-        );
         photoModels.add(
           PhotoModel(
             id: asset.id,
             asset: asset,
             createdAt: asset.createDateTime,
             isVideo: asset.type == AssetType.video,
-            thumbnailData: thumb,
+            thumbnailData: null, // Will be loaded when needed
           ),
         );
+
+        // Report progress every 100 items or at the end
+        if (onProgress != null && (i % 100 == 0 || i == assets.length - 1)) {
+          onProgress!(i + 1);
+        }
       } catch (e) {
         debugPrint('GalleryService: Failed to process asset ${asset.id}: $e');
         // Continue with other assets instead of failing completely

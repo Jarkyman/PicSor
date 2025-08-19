@@ -8,19 +8,21 @@ class SwipeDeck extends StatefulWidget {
   final List<PhotoModel> deck;
   final void Function(PhotoActionType type) onSwipe;
   final bool isEnabled;
+  final VoidCallback? onUndo; // Added callback for undo events
 
   const SwipeDeck({
     super.key,
     required this.deck,
     required this.onSwipe,
     this.isEnabled = true,
+    this.onUndo,
   });
 
   @override
-  State<SwipeDeck> createState() => _SwipeDeckState();
+  SwipeDeckState createState() => SwipeDeckState();
 }
 
-class _SwipeDeckState extends State<SwipeDeck> with TickerProviderStateMixin {
+class SwipeDeckState extends State<SwipeDeck> with TickerProviderStateMixin {
   late AnimationController _swipeController;
   PhotoActionType? _pendingSwipe;
   bool _isAnimatingOut = false;
@@ -29,6 +31,15 @@ class _SwipeDeckState extends State<SwipeDeck> with TickerProviderStateMixin {
   late AnimationController _cardAnimController;
   late Animation<Offset> _cardAnim;
   String? _dragDirection;
+  bool _isUndoAnimation = false;
+  PhotoActionType? _lastSwipeDirection;
+  final Map<String, PhotoActionType> _swipeDirections = {};
+  String? _removingCardId;
+  // Animation for next card promotion
+  late AnimationController _nextCardAnimController;
+  late Animation<double> _nextCardOffsetAnim;
+  late Animation<double> _nextCardOverlayAnim;
+  bool _promoteNextCard = false;
 
   @override
   void initState() {
@@ -37,33 +48,180 @@ class _SwipeDeckState extends State<SwipeDeck> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
+
+    // Check if we need to animate a card on initialization
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.deck.isNotEmpty &&
+          _swipeDirections.containsKey(widget.deck.first.id) &&
+          !_isUndoAnimation) {
+        _animateUndo();
+      }
+    });
     _swipeController.addStatusListener((status) {
       if (status == AnimationStatus.completed && _isAnimatingOut) {
-        if (_pendingSwipe != null) {
-          widget.onSwipe(_pendingSwipe!);
+        if (_pendingSwipe != null && _removingCardId != null) {
+          widget.onSwipe(_pendingSwipe!); // deck fjernes her
           setState(() {
             _isAnimatingOut = false;
             _pendingSwipe = null;
             _dragOffset = Offset.zero;
+            _removingCardId = null;
+            _promoteNextCard = true;
+            _nextCardAnimController.forward(from: 0);
           });
+          // Reset next card animation to ensure clean state
+          _nextCardAnimController.reset();
+          // Ensure next card animation starts from 0 when new card becomes top
+          _nextCardOffsetAnim = Tween<double>(begin: 0.0, end: 0.0).animate(
+            CurvedAnimation(
+              parent: _nextCardAnimController,
+              curve: Curves.easeOutCubic,
+            ),
+          );
         }
       }
     });
     _cardAnimController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(
+        milliseconds: 400,
+      ), // Undo-animation lidt langsommere
     );
     _cardAnim = Tween<Offset>(
       begin: Offset.zero,
       end: Offset.zero,
     ).animate(_cardAnimController);
+    _nextCardAnimController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 350),
+    );
+    _nextCardOffsetAnim = Tween<double>(begin: 8.0, end: 0.0).animate(
+      CurvedAnimation(
+        parent: _nextCardAnimController,
+        curve: Curves.easeOutCubic,
+      ),
+    );
+    _nextCardOverlayAnim = Tween<double>(begin: 0.18, end: 0.0).animate(
+      CurvedAnimation(
+        parent: _nextCardAnimController,
+        curve: Curves.easeOutCubic,
+      ),
+    );
+    _nextCardAnimController.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        setState(() {
+          _promoteNextCard = false;
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
     _swipeController.dispose();
     _cardAnimController.dispose();
+    _nextCardAnimController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(SwipeDeck oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Check if this is an undo (deck got bigger)
+    if (widget.deck.length > oldWidget.deck.length) {
+      _animateUndo();
+    }
+    // Check if we need to animate a card that was restored from state
+    else if (widget.deck.isNotEmpty &&
+        oldWidget.deck.isNotEmpty &&
+        widget.deck.first.id != oldWidget.deck.first.id &&
+        _swipeDirections.containsKey(widget.deck.first.id) &&
+        !_isUndoAnimation) {
+      // This is a card that was restored from state and needs animation
+      _animateUndo();
+    }
+  }
+
+  void _animateUndo() {
+    // Find retning for det nye topkort
+    if (widget.deck.isEmpty) return;
+    final topCardId = widget.deck.first.id;
+    final direction =
+        _swipeDirections[topCardId] ??
+        PhotoActionType.keep; // fallback to right
+
+    // Prevent multiple animations
+    if (_isUndoAnimation || _cardAnimController.isAnimating) return;
+
+    // Reset any existing animation state
+    _cardAnimController.stop();
+    _cardAnimController.reset();
+
+    setState(() {
+      _isUndoAnimation = true;
+      _isDragging = false;
+      _dragOffset = Offset.zero;
+      _dragDirection = null;
+    });
+
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
+
+    Offset startOffset;
+    switch (direction) {
+      case PhotoActionType.delete:
+        startOffset = Offset(-width, 0); // Fra venstre
+        break;
+      case PhotoActionType.keep:
+        startOffset = Offset(width, 0); // From right
+        break;
+      case PhotoActionType.sortLater:
+        startOffset = Offset(0, -height); // Fra toppen
+        break;
+    }
+
+    _cardAnim = Tween<Offset>(begin: startOffset, end: Offset.zero).animate(
+      CurvedAnimation(parent: _cardAnimController, curve: Curves.easeOutCubic),
+    );
+
+    _cardAnimController.reset();
+    _cardAnimController.forward();
+
+    // Reset state after animation
+    _cardAnimController.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        setState(() {
+          _isUndoAnimation = false;
+          _isDragging = false;
+          _dragOffset = Offset.zero;
+          _dragDirection = null;
+          // Remove swipe direction for this card so undo can happen multiple times
+          _swipeDirections.remove(topCardId);
+        });
+        // Remove this specific listener to prevent memory leaks
+        _cardAnimController.removeStatusListener((status) {});
+      }
+    });
+  }
+
+  // Public method to trigger undo animation
+  void triggerUndoAnimation() {
+    _animateUndo();
+  }
+
+  // Public method to check if undo animation is needed
+  void checkForUndoAnimation() {
+    if (widget.deck.isNotEmpty &&
+        _swipeDirections.containsKey(widget.deck.first.id) &&
+        !_isUndoAnimation) {
+      _animateUndo();
+    }
+  }
+
+  // Method called when undo happens
+  void onUndoTriggered() {
+    widget.onUndo?.call();
+    _animateUndo();
   }
 
   void _triggerDeckSwipe(PhotoActionType type) {
@@ -71,12 +229,26 @@ class _SwipeDeckState extends State<SwipeDeck> with TickerProviderStateMixin {
     setState(() {
       _isAnimatingOut = true;
       _pendingSwipe = type;
+      _lastSwipeDirection = type; // Gem retning for undo animation
+      if (widget.deck.isNotEmpty) {
+        _removingCardId = widget.deck.first.id;
+        _swipeDirections[widget.deck.first.id] = type;
+      }
     });
     _swipeController.forward(from: 0);
   }
 
+  void _handleCardPanStart(DragStartDetails details) {
+    setState(() {
+      _dragOffset = Offset.zero;
+      _dragDirection = null;
+      _isDragging = false;
+    });
+  }
+
   void _handleCardPanUpdate(DragUpdateDetails details) {
     setState(() {
+      // Determine direction first based on delta
       if (_dragDirection == null) {
         if (details.delta.dx.abs() > details.delta.dy.abs()) {
           _dragDirection = 'horizontal';
@@ -84,12 +256,21 @@ class _SwipeDeckState extends State<SwipeDeck> with TickerProviderStateMixin {
           _dragDirection = 'up';
         }
       }
+
+      // Update offset based on direction - only allow right, left, and up
       if (_dragDirection == 'horizontal') {
-        _dragOffset = Offset(_dragOffset.dx + details.delta.dx, 0);
+        _dragOffset = Offset(
+          _dragOffset.dx + details.delta.dx,
+          0, // Keep Y at 0 for horizontal swipes
+        );
       } else if (_dragDirection == 'up') {
         final newY = _dragOffset.dy + details.delta.dy;
-        _dragOffset = Offset(0, newY < 0 ? newY : 0);
+        _dragOffset = Offset(
+          0, // Keep X at 0 for vertical swipes
+          newY < 0 ? newY : 0, // Only allow upward movement
+        );
       }
+
       _isDragging = true;
     });
   }
@@ -199,15 +380,32 @@ class _SwipeDeckState extends State<SwipeDeck> with TickerProviderStateMixin {
     return LayoutBuilder(
       builder: (context, constraints) {
         final maxCardWidth = constraints.maxWidth;
-        final maxCardHeight = constraints.maxHeight;
+        // Add padding at bottom so cards are not under bottom bar
+        final bottomPadding = MediaQuery.of(context).padding.bottom + 80;
+        final maxCardHeight = constraints.maxHeight - bottomPadding;
         return Stack(
           clipBehavior: Clip.none,
           children: [
+            // Render all cards, but if a card is _removingCardId, animate it out
             ...List.generate(widget.deck.length, (i) {
               final renderIndex = widget.deck.length - 1 - i;
-              final isTop = renderIndex == 0;
-              final offsetY = i * 8.0;
               final photo = widget.deck[renderIndex];
+              final isTop = renderIndex == 0;
+              final isNext = renderIndex == 1;
+              final isRemoving = _removingCardId == photo.id;
+              final isUndoAnimation = _isUndoAnimation && isTop;
+              double offsetY = 0.0;
+              if (isTop) {
+                // Top card should always be at center (no offset)
+                offsetY = 0.0;
+              } else if (isNext && _promoteNextCard) {
+                // Animate next card up
+                offsetY = _nextCardOffsetAnim.value;
+              } else {
+                // Underliggende kort har stacking offset
+                offsetY = i * 8.0;
+              }
+
               final aspectRatio =
                   (photo.asset.width > 0 && photo.asset.height > 0)
                       ? photo.asset.width / photo.asset.height
@@ -223,45 +421,143 @@ class _SwipeDeckState extends State<SwipeDeck> with TickerProviderStateMixin {
                 height: cardHeight,
                 child: SwipeCard(
                   photo: photo,
-                  isTop: isTop,
+                  isTop:
+                      isTop ||
+                      isUndoAnimation, // Ensure undo card is treated as top
                   aspectRatio: aspectRatio,
                 ),
               );
-              card = Transform.translate(
-                offset: Offset(0, offsetY),
-                child: card,
-              );
+              Widget animatedCard;
               if (isTop) {
-                card = AnimatedBuilder(
+                animatedCard = AnimatedBuilder(
                   animation: _cardAnimController,
                   builder: (context, child) {
                     final offset =
-                        _isDragging
+                        _isDragging && !isRemoving
                             ? _dragOffset
-                            : (_cardAnimController.isAnimating
+                            : (_cardAnimController.isAnimating ||
+                                    _isUndoAnimation
                                 ? _cardAnim.value
                                 : Offset.zero);
+
+                    // Use the offset with direction restrictions
+                    final combinedOffset = offset;
+
                     return GestureDetector(
-                      onPanUpdate:
-                          widget.isEnabled && !_isAnimatingOut
-                              ? (details) => _handleCardPanUpdate(details)
-                              : null,
-                      onPanEnd:
-                          widget.isEnabled && !_isAnimatingOut
-                              ? (details) => _handleCardPanEnd(details)
-                              : null,
-                      child: Transform.translate(offset: offset, child: child),
+                      onPanStart: !isRemoving ? _handleCardPanStart : null,
+                      onPanUpdate: !isRemoving ? _handleCardPanUpdate : null,
+                      onPanEnd: !isRemoving ? _handleCardPanEnd : null,
+                      child: Stack(
+                        children: [
+                          Transform.translate(
+                            offset: combinedOffset,
+                            child: child,
+                          ),
+                          // Temporarily disable live label overlay to test
+                          // if (_isDragging && !isRemoving)
+                          //   _buildLiveLabelOverlay(),
+                        ],
+                      ),
                     );
                   },
                   child: card,
                 );
+              } else if (isNext && _promoteNextCard) {
+                animatedCard = AnimatedBuilder(
+                  animation: _nextCardAnimController,
+                  builder: (context, child) {
+                    return Stack(
+                      children: [
+                        child!,
+                        if (_nextCardOverlayAnim.value > 0)
+                          Positioned.fill(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(
+                                  alpha: _nextCardOverlayAnim.value,
+                                ),
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
+                  child: card,
+                );
+              } else {
+                animatedCard = card;
               }
-              return Positioned.fill(child: Center(child: card));
+              return Positioned.fill(
+                child: Align(
+                  alignment: Alignment.center,
+                  child: Transform.translate(
+                    offset:
+                        isTop
+                            ? Offset.zero
+                            : (isNext && _promoteNextCard
+                                ? Offset(0, _nextCardOffsetAnim.value)
+                                : Offset(0, offsetY)),
+                    child: animatedCard,
+                  ),
+                ),
+              );
             }),
             if (floatingLabel != null) floatingLabel,
           ],
         );
       },
     );
+  }
+
+  // Helper til at bygge overlay/livelabel under drag
+  Widget _buildLiveLabelOverlay() {
+    final liveLabel = getLiveLabel(_dragOffset, true);
+    final liveLabelColor = getLiveLabelColor(_dragOffset, true);
+    final showLiveLabel = shouldShowLiveLabel(_dragOffset, true);
+    debugPrint(
+      'LiveLabel: showLiveLabel = $showLiveLabel, liveLabel = $liveLabel, _dragOffset = $_dragOffset',
+    );
+    if (showLiveLabel && liveLabel != null && liveLabelColor != null) {
+      Alignment alignment = Alignment.center;
+      EdgeInsets padding = EdgeInsets.zero;
+      switch (liveLabel) {
+        case 'Keep':
+          alignment = Alignment.centerRight;
+          padding = EdgeInsets.only(right: 24);
+          break;
+        case 'Delete':
+          alignment = Alignment.centerLeft;
+          padding = EdgeInsets.only(left: 24);
+          break;
+        case 'Sort later':
+          alignment = Alignment.topCenter;
+          padding = EdgeInsets.only(top: 32);
+          break;
+      }
+      return Align(
+        alignment: alignment,
+        child: Padding(
+          padding: padding,
+          child: Text(
+            liveLabel,
+            style: TextStyle(
+              color: liveLabelColor,
+              fontSize: 36,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 2,
+              shadows: [
+                Shadow(
+                  blurRadius: 24,
+                  color: liveLabelColor.withValues(alpha: 0.8),
+                  offset: Offset(0, 0),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+    return const SizedBox.shrink();
   }
 }

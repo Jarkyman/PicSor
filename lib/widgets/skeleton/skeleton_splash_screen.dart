@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import '../../core/theme.dart';
 
 class SkeletonSplashScreen extends StatefulWidget {
-  const SkeletonSplashScreen({super.key});
+  final int? progress;
+  const SkeletonSplashScreen({super.key, this.progress});
 
   @override
   State<SkeletonSplashScreen> createState() => _SkeletonSplashScreenState();
@@ -87,9 +88,27 @@ class _SkeletonSplashScreenState extends State<SkeletonSplashScreen>
   }
 
   Widget _buildLoadingText(BuildContext context) {
-    return Text(
-      'Loading your gallery...',
-      style: AppTextStyles.title(context).copyWith(color: AppColors.primary),
+    final count = widget.progress ?? 0;
+
+    return Column(
+      children: [
+        Text(
+          'Loading your gallery...',
+          style: AppTextStyles.title(
+            context,
+          ).copyWith(color: AppColors.primary),
+        ),
+        if (count > 0)
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.sm),
+            child: Text(
+              '$count photos & videos found',
+              style: AppTextStyles.body(
+                context,
+              ).copyWith(color: AppColors.primary.withValues(alpha: 0.7)),
+            ),
+          ),
+      ],
     );
   }
 }

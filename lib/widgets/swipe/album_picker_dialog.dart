@@ -2,19 +2,23 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
 import '../../models/photo_model.dart';
-import '../../models/album_info.dart';
+import '../../models/album_info.dart' as models;
 import '../../core/theme.dart';
 import '../../services/photo_action_service.dart';
+import '../../services/album_service.dart';
 
 Future<String?> showAlbumPickerDialog(
   BuildContext context,
   PhotoModel photo,
 ) async {
-  final albums = await PhotoActionService.getAlbums();
+  final albums = await PhotoActionService.getFilteredAlbums();
   if (albums.isEmpty) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('No albums found.', style: AppTextStyles.body(context)),
+        content: Text(
+          'No personal or shared albums found.',
+          style: AppTextStyles.body(context),
+        ),
       ),
     );
     return null;
@@ -63,110 +67,150 @@ class AlbumPickerDialog extends StatelessWidget {
             ),
             const Divider(),
             Expanded(
-              child: FutureBuilder<List<AlbumInfo>>(
+              child: FutureBuilder<List<models.AlbumInfo>>(
                 future: _fetchAlbumInfos(albums),
                 builder: (context, snap) {
                   if (!snap.hasData) {
                     return const Center(child: CircularProgressIndicator());
                   }
                   final albumInfos = snap.data!;
-                  return ListView.separated(
-                    padding: EdgeInsets.only(bottom: AppSpacing.lg),
-                    itemCount: albumInfos.length,
-                    separatorBuilder:
-                        (context, index) => SizedBox(height: AppSpacing.lg),
-                    itemBuilder: (context, i) {
-                      final info = albumInfos[i];
-                      return Row(
-                        children: [
-                          SizedBox(width: AppSpacing.lg),
-                          Expanded(
-                            child: Material(
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).colorScheme.surfaceContainerHighest,
-                              borderRadius: BorderRadius.circular(
-                                AppSpacing.md,
-                              ),
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(
-                                  AppSpacing.md,
-                                ),
-                                onTap:
-                                    () => Navigator.of(context).pop(info.name),
-                                child: Padding(
-                                  padding: EdgeInsets.symmetric(
-                                    vertical: AppSpacing.md,
-                                    horizontal: AppSpacing.lg,
+
+                  return FutureBuilder<Map<String, bool>>(
+                    future: AlbumService.getSharedStatusForAlbums(albums),
+                    builder: (context, sharedSnap) {
+                      final sharedStatus = sharedSnap.data ?? {};
+
+                      return ListView.separated(
+                        padding: EdgeInsets.only(bottom: AppSpacing.lg),
+                        itemCount: albumInfos.length,
+                        separatorBuilder:
+                            (context, index) => SizedBox(height: AppSpacing.lg),
+                        itemBuilder: (context, i) {
+                          final info = albumInfos[i];
+                          final isShared = sharedStatus[info.name] ?? false;
+
+                          return Row(
+                            children: [
+                              SizedBox(width: AppSpacing.lg),
+                              Expanded(
+                                child: Material(
+                                  color:
+                                      Theme.of(
+                                        context,
+                                      ).colorScheme.surfaceContainerHighest,
+                                  borderRadius: BorderRadius.circular(
+                                    AppSpacing.md,
                                   ),
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        Icons.photo,
-                                        size: Scale.of(context, 16),
-                                        color: AppColors.secondary,
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(
+                                      AppSpacing.md,
+                                    ),
+                                    onTap:
+                                        () => Navigator.of(
+                                          context,
+                                        ).pop(info.name),
+                                    child: Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: AppSpacing.md,
+                                        horizontal: AppSpacing.lg,
                                       ),
-                                      SizedBox(width: AppSpacing.sm),
-                                      Expanded(
-                                        child: Padding(
-                                          padding: EdgeInsets.symmetric(
-                                            vertical: AppSpacing.sm,
-                                          ),
-                                          child: Text(
-                                            info.name,
-                                            style: AppTextStyles.label(
-                                              context,
-                                            ).copyWith(
-                                              color:
-                                                  Theme.of(context)
-                                                      .colorScheme
-                                                      .onSurfaceVariant,
-                                            ),
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(width: AppSpacing.sm),
-                                      Row(
-                                        mainAxisSize: MainAxisSize.min,
+                                      child: Row(
                                         children: [
-                                          Text(
-                                            '${info.count}',
-                                            style: AppTextStyles.body(
-                                              context,
-                                            ).copyWith(
-                                              fontSize: Scale.of(context, 14),
-                                              color:
-                                                  Theme.of(context)
-                                                      .colorScheme
-                                                      .onSurfaceVariant,
-                                            ),
+                                          Icon(
+                                            Icons.photo,
+                                            size: Scale.of(context, 16),
+                                            color: AppColors.secondary,
                                           ),
-                                          SizedBox(width: AppSpacing.xs),
-                                          if (info.thumb != null)
-                                            ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(
-                                                    AppSpacing.xs,
+                                          SizedBox(width: AppSpacing.sm),
+                                          Expanded(
+                                            child: Padding(
+                                              padding: EdgeInsets.symmetric(
+                                                vertical: AppSpacing.sm,
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Text(
+                                                      info.name,
+                                                      style: AppTextStyles.label(
+                                                        context,
+                                                      ).copyWith(
+                                                        color:
+                                                            Theme.of(context)
+                                                                .colorScheme
+                                                                .onSurfaceVariant,
+                                                      ),
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                    ),
                                                   ),
-                                              child: Image.memory(
-                                                info.thumb!,
-                                                width: 24,
-                                                height: 24,
-                                                fit: BoxFit.cover,
+                                                  // Show shared album indicator if applicable
+                                                  if (isShared)
+                                                    Padding(
+                                                      padding: EdgeInsets.only(
+                                                        left: AppSpacing.sm,
+                                                      ),
+                                                      child: Icon(
+                                                        Icons.people_rounded,
+                                                        color:
+                                                            Theme.of(context)
+                                                                .colorScheme
+                                                                .primary,
+                                                        size: Scale.of(
+                                                          context,
+                                                          14,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                ],
                                               ),
                                             ),
+                                          ),
+                                          SizedBox(width: AppSpacing.sm),
+                                          Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                '${info.count}',
+                                                style: AppTextStyles.body(
+                                                  context,
+                                                ).copyWith(
+                                                  fontSize: Scale.of(
+                                                    context,
+                                                    14,
+                                                  ),
+                                                  color:
+                                                      Theme.of(context)
+                                                          .colorScheme
+                                                          .onSurfaceVariant,
+                                                ),
+                                              ),
+                                              SizedBox(width: AppSpacing.xs),
+                                              if (info.thumb != null)
+                                                ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                        AppSpacing.xs,
+                                                      ),
+                                                  child: Image.memory(
+                                                    info.thumb!,
+                                                    width: 24,
+                                                    height: 24,
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
                                         ],
                                       ),
-                                    ],
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ),
-                          SizedBox(width: AppSpacing.lg),
-                        ],
+                              SizedBox(width: AppSpacing.lg),
+                            ],
+                          );
+                        },
                       );
                     },
                   );
@@ -318,8 +362,8 @@ class _NewAlbumDialogState extends State<NewAlbumDialog> {
   }
 }
 
-Future<List<AlbumInfo>> _fetchAlbumInfos(List<String> albums) async {
-  final List<AlbumInfo> infos = [];
+Future<List<models.AlbumInfo>> _fetchAlbumInfos(List<String> albums) async {
+  final List<models.AlbumInfo> infos = [];
   for (final name in albums) {
     try {
       final paths = await PhotoManager.getAssetPathList(
@@ -346,12 +390,14 @@ Future<List<AlbumInfo>> _fetchAlbumInfos(List<String> albums) async {
                   const ThumbnailSize(80, 80),
                 )
                 : null;
-        infos.add(AlbumInfo(name: name, count: await count, thumb: thumb));
+        infos.add(
+          models.AlbumInfo(name: name, count: await count, thumb: thumb),
+        );
       } else {
-        infos.add(AlbumInfo(name: name, count: 0, thumb: null));
+        infos.add(models.AlbumInfo(name: name, count: 0, thumb: null));
       }
     } catch (_) {
-      infos.add(AlbumInfo(name: name, count: 0, thumb: null));
+      infos.add(models.AlbumInfo(name: name, count: 0, thumb: null));
     }
   }
   return infos;

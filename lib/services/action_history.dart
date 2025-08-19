@@ -1,6 +1,7 @@
 import '../models/photo_action.dart';
 import '../models/photo_model.dart';
 import 'swipe_storage_service.dart';
+import 'package:flutter/foundation.dart';
 
 class ActionHistory {
   final List<PhotoAction> completedActions = [];
@@ -22,11 +23,18 @@ class ActionHistory {
   }
 
   PhotoAction? undoLastAction() {
-    if (undoStack.isEmpty) return null;
-    final lastAction = undoStack.removeLast();
-    completedActions.removeWhere((a) => a.photo.id == lastAction.photo.id);
-    swipeActions.remove(lastAction.photo.id);
-    return lastAction;
+    try {
+      if (undoStack.isEmpty) return null;
+
+      final lastAction = undoStack.removeLast();
+      completedActions.removeWhere((a) => a.photo.id == lastAction.photo.id);
+      swipeActions.remove(lastAction.photo.id);
+
+      return lastAction;
+    } catch (e) {
+      debugPrint('Error in ActionHistory.undoLastAction(): $e');
+      return null;
+    }
   }
 
   List<PhotoAction> getUndoStack() => List.unmodifiable(undoStack);

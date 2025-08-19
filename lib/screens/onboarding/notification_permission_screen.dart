@@ -191,7 +191,14 @@ class _NotificationPermissionScreenState
                                       ),
                                       child: Text(
                                         'Skip',
-                                        style: AppTextStyles.button(context),
+                                        style: AppTextStyles.button(
+                                          context,
+                                        ).copyWith(
+                                          color:
+                                              Theme.of(
+                                                context,
+                                              ).colorScheme.primary,
+                                        ),
                                       ),
                                     ),
                                   ],

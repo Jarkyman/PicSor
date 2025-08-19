@@ -1,4 +1,5 @@
 import '../models/photo_model.dart';
+import 'package:flutter/foundation.dart';
 
 class DeckManager {
   List<PhotoModel> _deck = [];
@@ -6,17 +7,17 @@ class DeckManager {
   bool _isDeckInitialized = false;
   List<PhotoModel> _assets = [];
   final int deckSize;
-  final Map<String, String> swipeActions;
+  Map<String, String> _swipeActions;
 
-  DeckManager({this.deckSize = 5, required this.swipeActions});
+  DeckManager({this.deckSize = 5, required Map<String, String> swipeActions})
+    : _swipeActions = swipeActions;
 
   List<PhotoModel> get deck => _deck;
 
   void initializeDeck(List<PhotoModel> assets) {
-    if (_isDeckInitialized) return;
     _assets = assets;
     final filtered =
-        assets.where((a) => !swipeActions.containsKey(a.id)).toList();
+        assets.where((a) => !_swipeActions.containsKey(a.id)).toList();
     _deck = filtered.take(deckSize).toList();
     deckStartIndex = deckSize;
     _isDeckInitialized = true;
@@ -29,7 +30,10 @@ class DeckManager {
   }
 
   void addCardToTop(PhotoModel photo) {
-    _deck.insert(0, photo);
+    // Check if photo is already in deck to prevent duplicates
+    if (!_deck.any((p) => p.id == photo.id)) {
+      _deck.insert(0, photo);
+    }
   }
 
   void refillDeck() {
@@ -37,7 +41,7 @@ class DeckManager {
     while (_assets.length > deckStartIndex) {
       final next = _assets[deckStartIndex];
       deckStartIndex++;
-      if (!swipeActions.containsKey(next.id) &&
+      if (!_swipeActions.containsKey(next.id) &&
           !_deck.any((p) => p.id == next.id)) {
         _deck.add(next);
         break;
@@ -54,7 +58,7 @@ class DeckManager {
   }
 
   void updateSwipeActions(Map<String, String> newSwipeActions) {
-    // This method allows external updates to swipeActions
-    // In a real implementation, you might want to use a callback or stream
+    // Update the swipeActions reference to the latest state
+    _swipeActions = newSwipeActions;
   }
 }
