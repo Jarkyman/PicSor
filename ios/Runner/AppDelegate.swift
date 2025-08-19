@@ -130,6 +130,36 @@ import Photos
         result(FlutterMethodNotImplemented)
       }
     }
+    
+    // Shared albums platform channel
+    let sharedAlbumsChannel = FlutterMethodChannel(name: "picsor.albums.shared", binaryMessenger: controller.binaryMessenger)
+    sharedAlbumsChannel.setMethodCallHandler { (call, result) in
+      if call.method == "getAlbums" {
+        guard #available(iOS 14, *) else {
+          result([])
+          return
+        }
+        
+        let fetchOptions = PHFetchOptions()
+        let collections = PHAssetCollection.fetchAssetCollections(with: .album, subtype: .any, options: fetchOptions)
+        
+        var albums: [[String: Any]] = []
+        collections.enumerateObjects { (collection, _, _) in
+          let isShared = collection.assetCollectionSubtype == .albumCloudShared
+          let albumInfo: [String: Any] = [
+            "id": collection.localIdentifier,
+            "title": collection.localizedTitle ?? "",
+            "isShared": isShared
+          ]
+          albums.append(albumInfo)
+        }
+        
+        result(albums)
+      } else {
+        result(FlutterMethodNotImplemented)
+      }
+    }
+    
     GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }

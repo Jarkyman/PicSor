@@ -4,6 +4,7 @@ import '../services/swipe_logic_service.dart';
 import '../models/photo_model.dart';
 import '../models/photo_action.dart';
 import 'swipe_screen.dart';
+import 'photo_selection_screen.dart';
 import 'deleted_screen.dart';
 import 'sort_later_screen.dart';
 import 'stats_screen.dart';
@@ -24,10 +25,8 @@ class MainNavigationScreen extends StatefulWidget {
 }
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
-  int _currentIndex = 2; // Start on swipe screen (middle)
+  int _currentIndex = 2; // Start on photo selection screen (middle)
   final List<Widget> _screens = [];
-  final GlobalKey<SwipeScreenState> _swipeScreenKey =
-      GlobalKey<SwipeScreenState>();
 
   @override
   void initState() {
@@ -49,13 +48,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           'sort_later',
         ),
       ),
-      SwipeScreen(
-        key: _swipeScreenKey,
+      PhotoSelectionScreen(
         swipeLogicService: widget.swipeLogicService,
         assets: widget.assets,
-        onStateChanged:
-            () => setState(() {}), // Trigger rebuild when swipe state changes
-        onUndo: () => setState(() {}), // Trigger rebuild when undo happens
       ),
       StatsScreen(),
       SettingsScreen(),
@@ -72,53 +67,44 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     debugPrint(
       'MainNavigationScreen: Undo completed, deck after: ${widget.swipeLogicService.deck.map((p) => p.id).toList()}',
     );
-
-    // Regenerate SwipeScreen to force rebuild
-    _screens[2] = SwipeScreen(
-      key: _swipeScreenKey,
-      swipeLogicService: widget.swipeLogicService,
-      assets: widget.assets,
-      onStateChanged:
-          () => setState(() {}), // Trigger rebuild when swipe state changes
-      onUndo: () => setState(() {}), // Trigger rebuild when undo happens
-    );
-
-    // Trigger undo animation after the widget is built
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _swipeScreenKey.currentState?.triggerUndoAnimation();
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _buildAppBar(),
+      appBar:
+          _currentIndex == 2
+              ? null
+              : _buildAppBar(), // No AppBar for photo selection screen
       body: IndexedStack(index: _currentIndex, children: _screens),
       bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
 
   PreferredSizeWidget _buildAppBar() {
+    final titles = [
+      'Deleted',
+      'Sort Later',
+      'Choose Photos',
+      'Stats',
+      'Settings',
+    ];
+    final currentTitle = titles[_currentIndex];
+
     return AppBar(
-      title: Text('PicSor', style: AppTextStyles.title(context)),
+      title: Text(currentTitle, style: AppTextStyles.title(context)),
       actions: [
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-          child: Center(
-            child: Text(
-              '${widget.swipeLogicService.swipesLeft} swipes',
-              style: AppTextStyles.label(context),
+        if (_currentIndex == 2) ...[
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            child: Center(
+              child: Text(
+                '${widget.swipeLogicService.swipesLeft} swipes',
+                style: AppTextStyles.label(context),
+              ),
             ),
           ),
-        ),
-        IconButton(
-          icon: Icon(Icons.undo, size: Scale.of(context, 24)),
-          tooltip: 'Undo',
-          onPressed:
-              widget.swipeLogicService.undoStack.isNotEmpty
-                  ? _handleUndo
-                  : null,
-        ),
+        ],
       ],
     );
   }
@@ -154,7 +140,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             children: [
               _buildNavItem(0, Icons.delete_outline, 'Delete'),
               _buildNavItem(1, Icons.watch_later_outlined, 'Later'),
-              _buildNavItem(2, Icons.swipe, 'Swipe'),
+              _buildNavItem(2, Icons.photo_library, 'Photos'),
               _buildNavItem(3, Icons.bar_chart_outlined, 'Stats'),
               _buildNavItem(4, Icons.settings_outlined, 'Settings'),
             ],

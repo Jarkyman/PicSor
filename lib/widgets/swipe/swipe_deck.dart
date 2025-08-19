@@ -48,6 +48,15 @@ class SwipeDeckState extends State<SwipeDeck> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
+
+    // Check if we need to animate a card on initialization
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.deck.isNotEmpty &&
+          _swipeDirections.containsKey(widget.deck.first.id) &&
+          !_isUndoAnimation) {
+        _animateUndo();
+      }
+    });
     _swipeController.addStatusListener((status) {
       if (status == AnimationStatus.completed && _isAnimatingOut) {
         if (_pendingSwipe != null && _removingCardId != null) {
@@ -118,12 +127,17 @@ class SwipeDeckState extends State<SwipeDeck> with TickerProviderStateMixin {
   @override
   void didUpdateWidget(SwipeDeck oldWidget) {
     super.didUpdateWidget(oldWidget);
-    debugPrint(
-      'SwipeDeck didUpdateWidget: old deck length = ${oldWidget.deck.length}, new deck length = ${widget.deck.length}',
-    );
     // Check if this is an undo (deck got bigger)
     if (widget.deck.length > oldWidget.deck.length) {
-      debugPrint('SwipeDeck: Undo detected! Triggering animation...');
+      _animateUndo();
+    }
+    // Check if we need to animate a card that was restored from state
+    else if (widget.deck.isNotEmpty &&
+        oldWidget.deck.isNotEmpty &&
+        widget.deck.first.id != oldWidget.deck.first.id &&
+        _swipeDirections.containsKey(widget.deck.first.id) &&
+        !_isUndoAnimation) {
+      // This is a card that was restored from state and needs animation
       _animateUndo();
     }
   }
@@ -135,8 +149,19 @@ class SwipeDeckState extends State<SwipeDeck> with TickerProviderStateMixin {
     final direction =
         _swipeDirections[topCardId] ??
         PhotoActionType.keep; // fallback to right
+
+    // Prevent multiple animations
+    if (_isUndoAnimation || _cardAnimController.isAnimating) return;
+
+    // Reset any existing animation state
+    _cardAnimController.stop();
+    _cardAnimController.reset();
+
     setState(() {
       _isUndoAnimation = true;
+      _isDragging = false;
+      _dragOffset = Offset.zero;
+      _dragDirection = null;
     });
 
     final width = MediaQuery.of(context).size.width;
@@ -167,9 +192,13 @@ class SwipeDeckState extends State<SwipeDeck> with TickerProviderStateMixin {
       if (status == AnimationStatus.completed) {
         setState(() {
           _isUndoAnimation = false;
+          _isDragging = false;
+          _dragOffset = Offset.zero;
+          _dragDirection = null;
           // Remove swipe direction for this card so undo can happen multiple times
           _swipeDirections.remove(topCardId);
         });
+        // Remove this specific listener to prevent memory leaks
         _cardAnimController.removeStatusListener((status) {});
       }
     });
@@ -180,11 +209,17 @@ class SwipeDeckState extends State<SwipeDeck> with TickerProviderStateMixin {
     _animateUndo();
   }
 
+  // Public method to check if undo animation is needed
+  void checkForUndoAnimation() {
+    if (widget.deck.isNotEmpty &&
+        _swipeDirections.containsKey(widget.deck.first.id) &&
+        !_isUndoAnimation) {
+      _animateUndo();
+    }
+  }
+
   // Method called when undo happens
   void onUndoTriggered() {
-    debugPrint(
-      'SwipeDeck: onUndoTriggered called, triggering undo animation...',
-    );
     widget.onUndo?.call();
     _animateUndo();
   }
@@ -212,9 +247,6 @@ class SwipeDeckState extends State<SwipeDeck> with TickerProviderStateMixin {
   }
 
   void _handleCardPanUpdate(DragUpdateDetails details) {
-    debugPrint(
-      'SwipeDeck: BEFORE update - _dragOffset = $_dragOffset, _dragDirection = $_dragDirection',
-    );
     setState(() {
       // Determine direction first based on delta
       if (_dragDirection == null) {
@@ -240,9 +272,6 @@ class SwipeDeckState extends State<SwipeDeck> with TickerProviderStateMixin {
       }
 
       _isDragging = true;
-      debugPrint(
-        'SwipeDeck: AFTER update - _dragOffset = $_dragOffset, _dragDirection = $_dragDirection, _isDragging = $_isDragging, _promoteNextCard = $_promoteNextCard, _nextCardOffsetAnim = ${_nextCardOffsetAnim.value}',
-      );
     });
   }
 
@@ -296,10 +325,6 @@ class SwipeDeckState extends State<SwipeDeck> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint(
-      'SwipeDeck build: deck length = ${widget.deck.length}, deck IDs = ${widget.deck.map((p) => p.id).toList()}',
-    );
-
     if (widget.deck.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -368,6 +393,7 @@ class SwipeDeckState extends State<SwipeDeck> with TickerProviderStateMixin {
               final isTop = renderIndex == 0;
               final isNext = renderIndex == 1;
               final isRemoving = _removingCardId == photo.id;
+              final isUndoAnimation = _isUndoAnimation && isTop;
               double offsetY = 0.0;
               if (isTop) {
                 // Top card should always be at center (no offset)
@@ -379,9 +405,7 @@ class SwipeDeckState extends State<SwipeDeck> with TickerProviderStateMixin {
                 // Underliggende kort har stacking offset
                 offsetY = i * 8.0;
               }
-              debugPrint(
-                'Card $i (isTop: $isTop, renderIndex: $renderIndex): offsetY = $offsetY, _isDragging = $_isDragging, photo.id = ${photo.id}, _removingCardId = $_removingCardId',
-              );
+
               final aspectRatio =
                   (photo.asset.width > 0 && photo.asset.height > 0)
                       ? photo.asset.width / photo.asset.height
@@ -397,7 +421,9 @@ class SwipeDeckState extends State<SwipeDeck> with TickerProviderStateMixin {
                 height: cardHeight,
                 child: SwipeCard(
                   photo: photo,
-                  isTop: isTop,
+                  isTop:
+                      isTop ||
+                      isUndoAnimation, // Ensure undo card is treated as top
                   aspectRatio: aspectRatio,
                 ),
               );
@@ -416,10 +442,6 @@ class SwipeDeckState extends State<SwipeDeck> with TickerProviderStateMixin {
 
                     // Use the offset with direction restrictions
                     final combinedOffset = offset;
-
-                    debugPrint(
-                      'AnimatedBuilder: _isDragging = $_isDragging, offset = $offset, combinedOffset = $combinedOffset, _dragDirection = $_dragDirection',
-                    );
 
                     return GestureDetector(
                       onPanStart: !isRemoving ? _handleCardPanStart : null,

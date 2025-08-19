@@ -3,6 +3,7 @@ import '../../models/photo_model.dart';
 import '../../services/swipe_logic_service.dart';
 import '../../services/photo_action_service.dart';
 import '../../services/album_handler_service.dart';
+import '../../services/thumbnail_service.dart';
 import '../../core/theme.dart';
 import '../../widgets/swipe/swipe_deck.dart';
 import '../../widgets/swipe/swipe_action_button_group.dart';
@@ -35,6 +36,28 @@ class SwipeContent extends StatefulWidget {
 class SwipeContentState extends State<SwipeContent> {
   int _forceRebuild = 0;
   final GlobalKey<SwipeDeckState> _swipeDeckKey = GlobalKey<SwipeDeckState>();
+  final ThumbnailService _thumbnailService = ThumbnailService();
+
+  @override
+  void initState() {
+    super.initState();
+    // Preload thumbnails for the first 20 photos
+    _preloadInitialThumbnails();
+
+    // Check if we need to animate a card on initialization
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.swipeLogicService.deck.isNotEmpty) {
+        // Check if the top card needs animation (e.g., restored from state)
+        _swipeDeckKey.currentState?.checkForUndoAnimation();
+      }
+    });
+  }
+
+  Future<void> _preloadInitialThumbnails() async {
+    if (widget.assets.isNotEmpty) {
+      await _thumbnailService.preloadInitialThumbnails(widget.assets);
+    }
+  }
 
   // Method to trigger undo animation
   void triggerUndoAnimation() {
@@ -44,10 +67,6 @@ class SwipeContentState extends State<SwipeContent> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint(
-      'SwipeContent build: deck length = ${widget.swipeLogicService.deck.length}, forceRebuild = $_forceRebuild',
-    );
-
     if (widget.isLoading) {
       return const SkeletonSwipeScreen();
     }
@@ -77,13 +96,11 @@ class SwipeContentState extends State<SwipeContent> {
           isEnabled:
               widget.swipeLogicService.canSwipe() && !widget.timeCheatDetected,
           onSwipe: (type) {
-            debugPrint('SwipeContent: Swipe detected, type = $type');
             // Deck is updated first AFTER animation is complete (in SwipeDeck)
             widget.swipeLogicService.handleDeckSwipe(type);
             widget.onSwipe?.call(); // Trigger parent rebuild
           },
           onUndo: () {
-            debugPrint('SwipeContent: Undo detected, triggering animation...');
             _swipeDeckKey.currentState?.triggerUndoAnimation();
             widget.onUndo?.call();
           },

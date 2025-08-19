@@ -41,16 +41,13 @@ class SwipeLogicService {
   }
 
   void initializeDeck(List<PhotoModel> assets) {
+    _deckManager.resetDeck(); // Reset deck before initializing with new assets
     _deckManager.initializeDeck(assets);
   }
 
   List<PhotoModel> get deck => _deckManager.deck;
 
   void handleSwipe(PhotoAction action) {
-    debugPrint(
-      'handleSwipe: BEFORE deck=${_deckManager.deck.map((p) => p.id).toList()}',
-    );
-
     _actionHistory.addAction(action);
     _swipeCounter.consumeSwipe();
 
@@ -59,9 +56,6 @@ class SwipeLogicService {
         _deckManager.deck.first.id == action.photo.id) {
       _deckManager.removeTopCard();
     } else {
-      debugPrint(
-        'WARNING: Tried to swipe id=${action.photo.id} but deck.first=${_deckManager.deck.isNotEmpty ? _deckManager.deck.first.id : 'EMPTY'}',
-      );
       assert(
         _deckManager.deck.isEmpty ||
             _deckManager.deck.first.id == action.photo.id,
@@ -71,24 +65,24 @@ class SwipeLogicService {
 
     // Refill deck
     _deckManager.refillDeck();
-
-    debugPrint(
-      'handleSwipe: AFTER deck=${_deckManager.deck.map((p) => p.id).toList()}',
-    );
-    debugPrint('  swipeActions: ${_actionHistory.swipeActions}');
-    debugPrint(
-      '  completedActions: ${_actionHistory.completedActions.map((a) => a.photo.id).toList()}',
-    );
     saveState();
   }
 
   void undo() {
-    final lastAction = _actionHistory.undoLastAction();
-    if (lastAction != null) {
-      _swipeCounter.addSwipe();
-      // Insert photo back at top of deck
-      _deckManager.addCardToTop(lastAction.photo);
-      saveState();
+    try {
+      final lastAction = _actionHistory.undoLastAction();
+      if (lastAction != null) {
+        _swipeCounter.addSwipe();
+        // Insert photo back at top of deck
+        _deckManager.addCardToTop(lastAction.photo);
+        // Update DeckManager with current swipeActions to ensure proper refill logic
+        _deckManager.updateSwipeActions(_actionHistory.swipeActions);
+        // Save state immediately to persist undo
+        saveState();
+      }
+    } catch (e) {
+      debugPrint('Error in SwipeLogicService.undo(): $e');
+      // Don't rethrow to prevent app freeze
     }
   }
 
@@ -114,16 +108,10 @@ class SwipeLogicService {
 
   // Handles swiping the top card in the deck
   void handleDeckSwipe(PhotoActionType type) {
-    debugPrint(
-      'handleDeckSwipe: type=$type, deck BEFORE=${_deckManager.deck.map((p) => p.id).toList()}',
-    );
     if (_deckManager.deck.isEmpty || !canSwipe()) return;
     final photo = _deckManager.deck.first;
     final action = PhotoAction(photo: photo, action: type);
     handleSwipe(action);
-    debugPrint(
-      'handleDeckSwipe: type=$type, deck AFTER=${_deckManager.deck.map((p) => p.id).toList()}',
-    );
   }
 
   // Handles undoing the last swipe and restoring the photo to the deck

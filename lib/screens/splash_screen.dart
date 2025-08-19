@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import '../models/photo_model.dart';
 import '../services/onboarding_manager.dart';
 import '../services/app_initializer.dart';
+import '../services/background_gallery_loader.dart';
 import '../widgets/skeleton/skeleton_splash_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -13,13 +15,16 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   late OnboardingManager _onboardingManager;
   late AppInitializer _appInitializer;
+  late BackgroundGalleryLoader _backgroundLoader;
   bool _loading = true;
+  int _loadingProgress = 0;
 
   @override
   void initState() {
     super.initState();
     _onboardingManager = OnboardingManager();
     _appInitializer = AppInitializer();
+    _backgroundLoader = BackgroundGalleryLoader();
     _initializeApp();
   }
 
@@ -38,7 +43,28 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _loadAppData() async {
     try {
       await _appInitializer.loadState();
-      final photos = await _appInitializer.loadGalleryAssets();
+
+      // Listen to background loading progress
+      _backgroundLoader.progressStream.listen((count) {
+        if (mounted) {
+          setState(() {
+            _loadingProgress = count;
+          });
+        }
+      });
+
+      // Check if we already have cached assets from background loading
+      List<PhotoModel> photos;
+      if (_backgroundLoader.cachedAssets != null) {
+        photos = _backgroundLoader.cachedAssets!;
+      } else {
+        // Start loading if not already started
+        _backgroundLoader.startLoading();
+
+        // Wait for completion
+        photos = await _backgroundLoader.completionStream.first;
+      }
+
       _appInitializer.initializeDeck(photos);
       await _appInitializer.navigateToSwipeScreen(context, photos);
     } catch (e) {
@@ -52,6 +78,10 @@ class _SplashScreenState extends State<SplashScreen> {
     });
   }
 
+  void _dispose() {
+    _backgroundLoader.dispose();
+  }
+
   Future<void> _finishOnboarding() async {
     await _onboardingManager.finishOnboarding();
     setState(() {
@@ -61,9 +91,15 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   @override
+  void dispose() {
+    _dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const SkeletonSplashScreen();
+      return SkeletonSplashScreen(progress: _loadingProgress);
     }
 
     if (_onboardingManager.showOnboarding) {

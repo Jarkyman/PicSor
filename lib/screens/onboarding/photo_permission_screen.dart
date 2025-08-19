@@ -5,6 +5,7 @@ import '../../widgets/onboarding/onboarding_icon.dart';
 import '../../widgets/onboarding/onboarding_title.dart';
 import '../../widgets/onboarding/onboarding_body.dart';
 import '../../widgets/onboarding/onboarding_button_row.dart';
+import '../../services/background_gallery_loader.dart';
 
 class PhotoPermissionScreen extends StatefulWidget {
   final VoidCallback onNext;
@@ -17,10 +18,12 @@ class PhotoPermissionScreen extends StatefulWidget {
 class _PhotoPermissionScreenState extends State<PhotoPermissionScreen> {
   bool _requested = false;
   bool _granted = false;
+  late BackgroundGalleryLoader _backgroundLoader;
 
   @override
   void initState() {
     super.initState();
+    _backgroundLoader = BackgroundGalleryLoader();
     _requestPermission();
   }
 
@@ -30,10 +33,21 @@ class _PhotoPermissionScreenState extends State<PhotoPermissionScreen> {
       _requested = true;
       _granted = status.isGranted;
     });
+
+    // Start background loading if permission is granted
+    if (status.isGranted) {
+      _backgroundLoader.startLoading();
+    }
   }
 
   Future<void> _openSettings() async {
     await openAppSettings();
+  }
+
+  @override
+  void dispose() {
+    _backgroundLoader.dispose();
+    super.dispose();
   }
 
   @override

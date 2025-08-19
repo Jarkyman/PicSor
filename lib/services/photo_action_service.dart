@@ -84,6 +84,82 @@ class PhotoActionService {
     }
   }
 
+  /// Get filtered albums (personal and shared only, excluding system and date-based albums)
+  static Future<List<String>> getFilteredAlbums() async {
+    try {
+      final allAlbums = await getAlbums();
+
+      // Filter out system albums and date-based albums
+      final filteredAlbums =
+          allAlbums.where((albumName) {
+            final name = albumName.toLowerCase();
+
+            // Filter out system albums
+            if (name == 'recent' ||
+                name == 'favorites' ||
+                name == 'screenshots' ||
+                name == 'videos' ||
+                name == 'selfies' ||
+                name == 'live photos' ||
+                name == 'portrait' ||
+                name == 'panoramas' ||
+                name == 'slo-mo' ||
+                name == 'bursts' ||
+                name == 'long exposure' ||
+                name == 'cinematic' ||
+                name == 'depth effect' ||
+                name == 'time-lapse' ||
+                name == 'night mode' ||
+                name == 'macro' ||
+                name == 'photographic styles' ||
+                name == 'raw' ||
+                name == 'heif' ||
+                name == 'all photos' ||
+                name == 'camera roll' ||
+                name == 'my photo stream' ||
+                name == 'icloud photos' ||
+                name == 'shared albums' ||
+                name == 'hidden' ||
+                name == 'recently deleted' ||
+                name == 'imports' ||
+                name == 'duplicates' ||
+                name == 'receipts' ||
+                name == 'handwriting' ||
+                name == 'illustrations' ||
+                name == 'qr codes' ||
+                name == 'documents' ||
+                name == 'utilities') {
+              return false;
+            }
+
+            // Filter out date-based albums using regex patterns
+            final datePatterns = [
+              RegExp(r'^\d{2}/\d{2}/\d{4}$'), // DD/MM/YYYY
+              RegExp(r'^\d{2}-\d{2}-\d{4}$'), // DD-MM-YYYY
+              RegExp(r'^\d{4}-\d{2}-\d{2}$'), // YYYY-MM-DD
+              RegExp(r'^\d{4}/\d{2}/\d{2}$'), // YYYY/MM/DD
+              RegExp(r'^\d{2}\.\d{2}\.\d{4}$'), // DD.MM.YYYY
+              RegExp(r'^\d{4}\.\d{2}\.\d{2}$'), // YYYY.MM.DD
+              RegExp(r'^\d{2}\.\d{2}\.\d{4}$'), // MM.DD.YYYY
+              RegExp(r'^\d{4}\.\d{2}\.\d{2}$'), // YYYY.MM.DD
+              RegExp(r'^\d{8}$'), // YYYYMMDD
+              RegExp(r'^\d{6}$'), // YYMMDD
+              // iOS Photos app date albums with count: "01/02/2013 (1)"
+              RegExp(r'^\d{2}/\d{2}/\d{4}\s*\(\d+\)$'),
+              RegExp(r'^\d{2}-\d{2}-\d{4}\s*\(\d+\)$'),
+              RegExp(r'^\d{4}-\d{2}-\d{2}\s*\(\d+\)$'),
+              RegExp(r'^\d{4}/\d{2}/\d{2}\s*\(\d+\)$'),
+            ];
+
+            return !datePatterns.any((pattern) => pattern.hasMatch(albumName));
+          }).toList();
+
+      return filteredAlbums;
+    } catch (_) {
+      return [];
+    }
+  }
+
   static Future<bool> createAlbum(String albumName) async {
     try {
       final result = await _albumsChannel.invokeMethod('createAlbum', {

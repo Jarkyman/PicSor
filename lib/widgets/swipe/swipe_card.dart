@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:typed_data';
 import '../../models/photo_model.dart';
 import '../../core/theme.dart';
 
@@ -26,7 +27,10 @@ class SwipeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     Widget imageWidget;
     final borderRadius = BorderRadius.circular(AppSpacing.cardRadius);
-    if (photo.thumbnailData != null && photo.thumbnailData!.isNotEmpty) {
+
+    if (photo.isThumbnailLoaded &&
+        photo.thumbnailData != null &&
+        photo.thumbnailData!.isNotEmpty) {
       final img = ClipRRect(
         borderRadius: borderRadius,
         child: Image.memory(
@@ -55,14 +59,62 @@ class SwipeCard extends StatelessWidget {
         imageWidget = img;
       }
     } else {
-      imageWidget = Container(
-        color: Colors.black,
-        alignment: Alignment.center,
-        child: Icon(
-          Icons.broken_image,
-          color: Colors.white,
-          size: Scale.of(context, 80),
-        ),
+      // Show loading placeholder or load thumbnail
+      imageWidget = FutureBuilder<Uint8List?>(
+        future: photo.loadThumbnail(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Container(
+              color: Colors.grey[800],
+              alignment: Alignment.center,
+              child: CircularProgressIndicator(
+                color: AppColors.primary,
+                strokeWidth: 2,
+              ),
+            );
+          }
+
+          if (snapshot.hasData && snapshot.data != null) {
+            final img = ClipRRect(
+              borderRadius: borderRadius,
+              child: Image.memory(
+                snapshot.data!,
+                fit: BoxFit.contain,
+                width: double.infinity,
+                height: double.infinity,
+                alignment: Alignment.center,
+              ),
+            );
+            if (!isTop) {
+              return Stack(
+                children: [
+                  img,
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surface.withValues(alpha: 0.9),
+                      borderRadius: borderRadius,
+                    ),
+                  ),
+                ],
+              );
+            } else {
+              return img;
+            }
+          }
+
+          // Fallback for failed loading
+          return Container(
+            color: Colors.black,
+            alignment: Alignment.center,
+            child: Icon(
+              Icons.broken_image,
+              color: Colors.white,
+              size: Scale.of(context, 80),
+            ),
+          );
+        },
       );
     }
     return AspectRatio(
